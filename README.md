@@ -1,29 +1,57 @@
 # AI Coding Harness
 
-개인 개발 생산성을 높이기 위한 AI Coding Harness를 구축하는 프로젝트.
+개인용 AI Coding Harness를 구축하고, 그 구성과 운영 규칙을 버전 관리하는 저장소입니다.
 
-## Goal
+이 프로젝트는 AI를 단순한 코드 생성 도구가 아니라 설계, 구현, 검증, 리뷰를 지원하는 개발 시스템으로 활용하는 것을 목표로 합니다.
 
-AI를 단순한 코드 생성 도구가 아니라
-설계, 구현, 검증, 리뷰를 수행하는 개발 시스템으로 활용한다.
+## 목표
 
-목표:
-
-- 개발 시간 단축
-- 코드 품질 향상
-- 성능 개선
-- human intervention 감소
+- 개발 리드타임 단축
+- 코드 품질과 성능 개선
 - 반복 작업 자동화
-- 검증 가능한 AI 개발 workflow 구축
+- 필요한 사람의 개입 감소
+- 재현하고 검증할 수 있는 AI 개발 워크플로우 구축
 
-## Current Stage
+## 현재 구현된 범위
 
-Phase 1: Codex 기본 Harness 구축
+다음 항목은 완료되었거나 실제 운영 환경에 적용되어 있습니다.
 
-첫 번째 목표:
+| 항목 | 상태 | 설명 |
+| --- | --- | --- |
+| AI Coding 가이드 | 완료 | AI 기반 개발의 원칙과 활용 방향을 문서화했습니다. |
+| Global `AGENTS.md` v0.1 | 완료 | 개인 공통 엔지니어링 규칙을 설계했습니다. |
+| 전역 규칙 템플릿 | 완료 | 버전 관리 대상인 [`templates/global/AGENTS.md`](templates/global/AGENTS.md)에 전역 규칙 원본을 관리합니다. |
+| Codex 전역 규칙 적용 | 완료 | 템플릿을 `~/.codex/AGENTS.md`에 적용했고, Codex가 이를 로드하는 것을 확인했습니다. |
 
-1. Global AGENTS.md
-2. Project AGENTS.md
-3. Verification workflow
+> `~/.codex/AGENTS.md`는 개인 로컬 환경의 파일이므로 이 저장소에는 포함하지 않습니다. 이 저장소의 기준 파일은 `templates/global/AGENTS.md`입니다.
 
-이후 Skills, Custom Agents, Worktrees, Hooks, MCP, CI automation을 순차적으로 도입한다.
+## 저장소 구성
+
+```text
+.
+├── README.md
+├── reference/
+│   └── AI_코딩_퍼포먼스_극대화_가이드.docx
+└── templates/
+    └── global/
+        └── AGENTS.md
+```
+
+## 다음 계획
+
+아래 항목은 아직 이 저장소에 구현되지 않았습니다. 실제 개발 작업에서 검증하며 순차적으로 도입합니다.
+
+1. **실제 개발 Task에서 Global `AGENTS.md` 평가:** 규칙이 작업 품질, 검증 수준, 협업 흐름에 미치는 효과를 확인하고 개선합니다.
+2. **Project `AGENTS.md`:** 프로젝트별 기술 스택, 테스트 명령, 아키텍처 제약을 담는 로컬 규칙을 설계합니다.
+3. **One-command verification:** 테스트, 린트, 타입 검사 등 핵심 검증을 한 번에 실행하는 표준 명령을 마련합니다.
+4. **Skills:** 반복되는 작업 절차를 재사용 가능한 스킬로 정리합니다.
+5. **Custom Agents:** 조사, 구현, 리뷰, 검증처럼 역할이 분명한 작업을 위한 에이전트를 구성합니다.
+6. **Worktree:** 병렬 작업을 안전하게 분리할 수 있는 Git worktree 운영 방식을 도입합니다.
+7. **Hooks:** 작업 전후의 점검과 규칙 적용을 자동화합니다.
+8. **CI 및 자동화:** 검증과 품질 기준을 지속적 통합 환경에서도 일관되게 실행합니다.
+
+## 운영 원칙
+
+- 전역 공통 규칙은 `templates/global/AGENTS.md`를 기준으로 관리합니다.
+- 규칙 변경은 실제 개발 Task에서의 관찰과 검증 결과를 바탕으로 반영합니다.
+- 자동화는 검증 가능한 단계부터 작게 도입하고, 효과가 확인된 뒤 확장합니다.
