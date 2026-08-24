@@ -1,0 +1,138 @@
+#!/usr/bin/env sh
+
+set -u
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+HARNESS_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+cd "$HARNESS_ROOT"
+failures=0
+
+fail() {
+    printf 'FAIL: %s\n' "$1" >&2
+    failures=$((failures + 1))
+}
+
+pass() {
+    printf 'PASS: %s\n' "$1"
+}
+
+require_file() {
+    path=$1
+    if [ -f "$HARNESS_ROOT/$path" ]; then
+        pass "required file: $path"
+    else
+        fail "missing required file: $path"
+    fi
+}
+
+require_executable() {
+    path=$1
+    if [ -x "$HARNESS_ROOT/$path" ]; then
+        pass "executable: $path"
+    else
+        fail "not executable: $path"
+    fi
+}
+
+require_heading() {
+    path=$1
+    heading=$2
+    if grep -F -x -q -- "$heading" "$HARNESS_ROOT/$path"; then
+        pass "contract heading in $path: $heading"
+    else
+        fail "missing contract heading in $path: $heading"
+    fi
+}
+
+required_files='
+VERSION
+README.md
+docs/architecture.md
+docs/configuration.md
+docs/verification-contract.md
+templates/global/AGENTS.md
+templates/repository/AGENTS.md
+templates/subsystem/AGENTS.md
+templates/verification/repository-verify
+templates/verification/subsystem-verify
+scripts/validate
+'
+
+for path in $required_files; do
+    require_file "$path"
+done
+
+shell_scripts='
+templates/verification/repository-verify
+templates/verification/subsystem-verify
+scripts/validate
+'
+
+for path in $shell_scripts; do
+    require_executable "$path"
+    if sh -n "$HARNESS_ROOT/$path"; then
+        pass "shell syntax: $path"
+    else
+        fail "invalid shell syntax: $path"
+    fi
+done
+
+require_heading templates/repository/AGENTS.md '## Repository Map'
+require_heading templates/repository/AGENTS.md '## Shared Dependencies'
+require_heading templates/repository/AGENTS.md '## Subsystem Routing'
+require_heading templates/repository/AGENTS.md '## Common Compatibility Contracts'
+require_heading templates/repository/AGENTS.md '## Verification Entry Point'
+require_heading templates/repository/AGENTS.md '## Generated, Runtime, and Secret Data'
+require_heading templates/repository/AGENTS.md '## Cross-subsystem Impact'
+require_heading templates/subsystem/AGENTS.md '## Purpose and Scope'
+require_heading templates/subsystem/AGENTS.md '## Execution Path'
+require_heading templates/subsystem/AGENTS.md '## Architecture Constraints'
+require_heading templates/subsystem/AGENTS.md '## Development Commands'
+require_heading templates/subsystem/AGENTS.md '## Compatibility Contracts'
+require_heading templates/subsystem/AGENTS.md '## Verification'
+require_heading templates/subsystem/AGENTS.md '## Stateful or Destructive Operations'
+require_heading templates/subsystem/AGENTS.md '## Sources of Truth and Generated Artifacts'
+require_heading templates/subsystem/AGENTS.md '## Environment Limitations'
+require_heading docs/architecture.md '## Ownership Boundary'
+require_heading docs/architecture.md '## Instruction Hierarchy'
+require_heading docs/configuration.md '## Portable Configuration'
+require_heading docs/configuration.md '## Local Configuration'
+require_heading docs/verification-contract.md '## Exit Codes'
+require_heading docs/verification-contract.md '## Mutation Boundary'
+
+text_paths='
+VERSION
+README.md
+docs
+templates
+scripts
+'
+
+absolute_path_pattern='/ho''me/[^/[:space:]]+|/Us''ers/[^/[:space:]]+|[A-Za-z]:\\Us''ers\\'
+if grep -R -l -E -- "$absolute_path_pattern" $text_paths >/dev/null 2>&1; then
+    grep -R -l -E -- "$absolute_path_pattern" $text_paths >&2
+    fail 'local absolute path found in a managed text artifact'
+else
+    pass 'no local absolute paths in managed text artifacts'
+fi
+
+secret_pattern='s''k-[A-Za-z0-9_-]{16,}|gh''p_[A-Za-z0-9]{16,}|AK''IA[0-9A-Z]{16}|BEGIN [A-Z ]*PRIVATE K''EY'
+if grep -R -l -E -- "$secret_pattern" $text_paths >/dev/null 2>&1; then
+    grep -R -l -E -- "$secret_pattern" $text_paths >&2
+    fail 'obvious secret pattern found in a managed text artifact'
+else
+    pass 'no obvious secret patterns in managed text artifacts'
+fi
+
+version=$(sed -n '1p' "$HARNESS_ROOT/VERSION")
+case "$version" in
+    ''|*[!0-9.]*|.*|*.) fail 'VERSION must be a non-empty dotted numeric value' ;;
+    *) pass "version format: $version" ;;
+esac
+
+if [ "$failures" -ne 0 ]; then
+    printf '\nHarness validation failed with %s issue(s).\n' "$failures" >&2
+    exit 1
+fi
+
+printf '\nHarness validation passed.\n'
