@@ -32,6 +32,13 @@ Replace the bracketed prompts with verified repository facts. Remove unused prom
 - Supported levels: `fast`, `full`
 - [Document any repository-wide verification prerequisites.]
 
+## Execution Policy Overrides
+
+- Additional `HIGH-RISK` work: [list only work that needs stricter treatment in this repository.]
+- Mandatory verification or runtime evidence: [map defined changes to required project-owned evidence.]
+- Autonomous-operation allowlist or deny list: [state only repository-specific exceptions or restrictions.]
+- [These rules may strengthen the Global execution policy; do not repeat it or weaken its approval boundaries.]
+
 ## Generated, Runtime, and Secret Data
 
 - Sources of truth: [list source files or directories]

@@ -49,6 +49,7 @@ VERSION
 README.md
 docs/architecture.md
 docs/configuration.md
+docs/execution-policy.md
 docs/verification-contract.md
 templates/global/AGENTS.md
 templates/repository/AGENTS.md
@@ -97,6 +98,10 @@ require_heading docs/architecture.md '## Ownership Boundary'
 require_heading docs/architecture.md '## Instruction Hierarchy'
 require_heading docs/configuration.md '## Portable Configuration'
 require_heading docs/configuration.md '## Local Configuration'
+require_heading docs/execution-policy.md '## Task Levels'
+require_heading docs/execution-policy.md '## Autonomy Rules'
+require_heading docs/execution-policy.md '## Project Overrides'
+require_heading docs/execution-policy.md '## Optional Methodology Providers'
 require_heading docs/verification-contract.md '## Exit Codes'
 require_heading docs/verification-contract.md '## Mutation Boundary'
 
@@ -124,10 +129,17 @@ else
     pass 'no obvious secret patterns in managed text artifacts'
 fi
 
-version=$(sed -n '1p' "$HARNESS_ROOT/VERSION")
-case "$version" in
-    ''|*[!0-9.]*|.*|*.) fail 'VERSION must be a non-empty dotted numeric value' ;;
-    *) pass "version format: $version" ;;
+version_file=$HARNESS_ROOT/VERSION
+version=$(sed -n '1p' "$version_file")
+version_line_count=$(wc -l < "$version_file" | tr -d '[:space:]')
+case "$version_line_count:$version" in
+    1:*.*)
+        case "$version" in
+            *[!0-9.]*|.*|*..*|*.) fail 'VERSION must contain dot-separated numeric components on one line' ;;
+            *) pass "version format: $version" ;;
+        esac
+        ;;
+    *) fail 'VERSION must contain dot-separated numeric components on one line' ;;
 esac
 
 if [ "$failures" -ne 0 ]; then
