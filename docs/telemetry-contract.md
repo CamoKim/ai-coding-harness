@@ -59,7 +59,7 @@ The schema deliberately stores only counts, enums, duration, optional model meta
 
 ## Runtime Helper Installation
 
-`scripts/telemetry-record` is the canonical hook handler. `scripts/install-telemetry-hooks` installs it and the user-level hooks file; `--check` verifies parity without mutation. Adoption refuses to overwrite an existing different handler, `hooks.json`, or inline `[hooks]` configuration. Trust review remains a Codex requirement. Installation never creates telemetry marker or records.
+`scripts/telemetry-record` is the canonical hook handler. `scripts/harness-install --check|--apply` owns its safe adoption together with Global `AGENTS.md` and the user-level hooks file. The deprecated `scripts/install-telemetry-hooks` makes no changes. Trust review remains a Codex requirement. Installation never creates telemetry marker or records.
 
 Global policy does not invoke telemetry. Hooks invoke only the installed runtime path; no repository-local fallback exists.
 
