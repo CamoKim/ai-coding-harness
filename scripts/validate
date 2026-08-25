@@ -50,13 +50,17 @@ README.md
 docs/architecture.md
 docs/configuration.md
 docs/execution-policy.md
+docs/telemetry-contract.md
 docs/verification-contract.md
 templates/global/AGENTS.md
 templates/repository/AGENTS.md
 templates/subsystem/AGENTS.md
 templates/verification/repository-verify
 templates/verification/subsystem-verify
+scripts/telemetry-record
+scripts/install-telemetry-hooks
 scripts/validate
+tests/test_telemetry_record.py
 '
 
 for path in $required_files; do
@@ -67,6 +71,7 @@ shell_scripts='
 templates/verification/repository-verify
 templates/verification/subsystem-verify
 scripts/validate
+scripts/install-telemetry-hooks
 '
 
 for path in $shell_scripts; do
@@ -77,6 +82,14 @@ for path in $shell_scripts; do
         fail "invalid shell syntax: $path"
     fi
 done
+
+require_executable scripts/telemetry-record
+require_executable scripts/install-telemetry-hooks
+if python3 -m unittest discover -s tests -p 'test_*.py'; then
+    pass 'telemetry helper tests'
+else
+    fail 'telemetry helper tests failed'
+fi
 
 require_heading templates/repository/AGENTS.md '## Repository Map'
 require_heading templates/repository/AGENTS.md '## Shared Dependencies'
@@ -103,6 +116,27 @@ require_heading docs/execution-policy.md '## Task Levels'
 require_heading docs/execution-policy.md '## Autonomy Rules'
 require_heading docs/execution-policy.md '## Project Overrides'
 require_heading docs/execution-policy.md '## Optional Methodology Providers'
+require_heading docs/telemetry-contract.md '## Opt-in and Storage'
+require_heading docs/telemetry-contract.md '## Schema'
+require_heading docs/telemetry-contract.md '## Data Minimization'
+require_heading docs/telemetry-contract.md '## Runtime Helper Installation'
+require_heading docs/telemetry-contract.md '## Helper Boundary'
+if ! command -v grep >/dev/null 2>&1; then
+    fail 'grep is required for legacy telemetry path validation'
+else
+    legacy_record_path='tasks.''jsonl'
+    legacy_matches=$(find docs scripts templates tests -type f -exec grep -F -l "$legacy_record_path" {} \; 2>&1)
+    scan_status=$?
+    if [ "$scan_status" -ne 0 ]; then
+        printf '%s\n' "$legacy_matches" >&2
+        fail 'legacy telemetry path validation scan failed'
+    elif [ -n "$legacy_matches" ]; then
+        printf '%s\n' "$legacy_matches" >&2
+        fail 'legacy telemetry task record path found'
+    else
+        pass 'turn telemetry record path is canonical'
+    fi
+fi
 require_heading docs/verification-contract.md '## Change-aware Routing'
 require_heading docs/verification-contract.md '## Exit Codes'
 require_heading docs/verification-contract.md '## Mutation Boundary'

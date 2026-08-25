@@ -41,3 +41,5 @@
 
 - Review the final diff before reporting completion.
 - Report what changed, validation actually performed and its results, remaining risks, and anything not verified.
+- General tasks inspect the local telemetry marker read-only. Only an explicit telemetry opt-in request may create or repair it; only an explicit telemetry opt-out request may delete it. Otherwise, do not mutate it.
+- Optional telemetry lifecycle is owned by trusted user-level Codex hooks. Do not invoke telemetry commands or assemble telemetry payloads during tasks; respect the marker consent and privacy contract.

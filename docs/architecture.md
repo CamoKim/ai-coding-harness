@@ -14,6 +14,7 @@ The Harness owns:
 - generic repository and subsystem instruction templates;
 - the execution-policy contract for task depth and user-direction boundaries;
 - the verification interface and dispatcher pattern;
+- the optional local efficiency-telemetry contract and its data-minimization boundary;
 - contracts for installing and applying Harness artifacts;
 - validation of the Harness repository itself.
 
@@ -61,6 +62,9 @@ Harness source of truth
 
     docs/execution-policy.md
         → task classification and autonomy decisions
+
+    docs/telemetry-contract.md
+        → optional local task metrics outside repositories
 
     templates/verification/*
         → project-owned verification scripts

@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+set -eu
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+SOURCE="$SCRIPT_DIR/telemetry-record"; HOOKS_SOURCE="$SCRIPT_DIR/../templates/telemetry/hooks.json"
+TARGET="$HOME/.codex/harness/bin/telemetry-record"; HOOKS_TARGET="$HOME/.codex/hooks.json"; CONFIG="$HOME/.codex/config.toml"
+check() { cmp -s "$SOURCE" "$TARGET" && cmp -s "$HOOKS_SOURCE" "$HOOKS_TARGET"; }
+case "${1-}" in
+  --check) check ;;
+  '')
+    if { [ -e "$TARGET" ] && ! cmp -s "$SOURCE" "$TARGET"; } || { [ -e "$HOOKS_TARGET" ] && ! cmp -s "$HOOKS_SOURCE" "$HOOKS_TARGET"; } || { [ -f "$CONFIG" ] && { grep -q '^\[hooks' "$CONFIG" || grep -q '^\[\[hooks' "$CONFIG"; }; }; then printf 'telemetry hook adoption requires manual review; existing helper or hook configuration was not changed\n' >&2; exit 3; fi
+    mkdir -p "$(dirname -- "$TARGET")"; [ -e "$TARGET" ] || install -m 755 "$SOURCE" "$TARGET"; [ -e "$HOOKS_TARGET" ] || install -m 644 "$HOOKS_SOURCE" "$HOOKS_TARGET"; check ;;
+  *) printf 'usage: %s [--check]\n' "$0" >&2; exit 64 ;;
+esac

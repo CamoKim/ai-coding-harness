@@ -24,6 +24,7 @@
 | Codex 전역 규칙 적용 | 완료 | 템플릿을 `~/.codex/AGENTS.md`에 적용했고, Codex가 이를 로드하는 것을 확인했습니다. |
 | E1 실행 정책 | 완료 | [`docs/execution-policy.md`](docs/execution-policy.md)에 short prompt 작업 깊이와 자율성 경계를 정의했고, 설치본 Global 규칙에 적용해 source parity를 확인했습니다. |
 | E2 검증 라우팅 | 완료 | 변경 파일·dependency·contract에 따라 project-owned verification scope, level, runtime evidence를 선택하는 contract를 정의했습니다. |
+| E3 효율성 telemetry | 완료 | [`docs/telemetry-contract.md`](docs/telemetry-contract.md)에 opt-in local task JSONL schema와 content-minimization boundary를 정의했습니다. deterministic append helper는 있으나 collector는 없고, repository가 local opt-in marker를 생성하지 않습니다. |
 
 > `~/.codex/AGENTS.md`는 개인 로컬 환경의 파일이므로 이 저장소에는 포함하지 않습니다. 이 저장소의 기준 파일은 `templates/global/AGENTS.md`입니다.
 
@@ -34,6 +35,7 @@
 ├── README.md
 ├── docs/
 │   ├── execution-policy.md
+│   ├── telemetry-contract.md
 │   └── verification-contract.md
 ├── reference/
 │   └── AI_코딩_퍼포먼스_극대화_가이드.docx
@@ -46,7 +48,7 @@
 
 아래 항목은 아직 이 저장소에 구현되지 않았습니다. 실제 개발 작업에서 검증하며 순차적으로 도입합니다.
 
-1. **실제 개발 Task에서 Global `AGENTS.md`와 E1 정책 평가:** 규칙이 작업 품질, 검증 수준, 협업 흐름에 미치는 효과를 확인하고 개선합니다.
+1. **실제 개발 Task에서 Global `AGENTS.md`, E1/E2 정책, opt-in E3 telemetry 평가:** 규칙이 작업 품질, 검증 수준, 협업 흐름에 미치는 효과를 확인하고 개선합니다.
 2. **Project `AGENTS.md`:** 프로젝트별 기술 스택, 테스트 명령, 아키텍처 제약, E1 override와 E2 verification routing을 담는 로컬 규칙을 설계합니다.
 3. **One-command verification:** 테스트, 린트, 타입 검사 등 핵심 검증을 한 번에 실행하는 표준 명령을 마련합니다.
 4. **Skills:** 반복되는 작업 절차를 재사용 가능한 스킬로 정리합니다.
