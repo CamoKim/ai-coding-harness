@@ -1,0 +1,155 @@
+#!/usr/bin/env python3
+"""Prepare and assess isolated, manual Harness behavioral-lab workspaces."""
+import hashlib
+import json
+import shutil
+import sys
+import tempfile
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+LAB = ROOT / "fixtures/behavioral-lab"
+SEED = LAB / "seed-repository"
+SCENARIOS = LAB / "scenarios"
+META = ".behavioral-lab"
+
+
+def files(root):
+    return {
+        str(path.relative_to(root)): hashlib.sha256(path.read_bytes()).hexdigest()
+        for path in root.rglob("*")
+        if path.is_file() and META not in path.parts
+    }
+
+
+def scenario(name):
+    path = SCENARIOS / f"{name}.json"
+    if not path.is_file():
+        raise ValueError("unknown scenario")
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except ValueError as exc:
+        raise ValueError("invalid scenario metadata") from exc
+    required = {"id", "expected_classification", "prompt", "allowed_changes", "required_events", "forbidden_events", "required_attestation"}
+    if (
+        set(value) != required
+        or value["id"] != name
+        or value["expected_classification"] not in {"TRIVIAL", "STANDARD", "COMPLEX", "HIGH-RISK"}
+        or not isinstance(value["prompt"], str)
+        or not isinstance(value["allowed_changes"], list)
+        or not all(isinstance(path, str) and not path.startswith(".") for path in value["allowed_changes"])
+        or not isinstance(value["required_events"], list)
+        or not isinstance(value["forbidden_events"], list)
+        or not all(valid_expectation(event) for event in value["required_events"] + value["forbidden_events"])
+        or not isinstance(value["required_attestation"], dict)
+    ):
+        raise ValueError("invalid scenario schema")
+    if not (LAB / value["prompt"]).is_file():
+        raise ValueError("scenario prompt missing")
+    return value
+
+
+def valid_event(event):
+    return event in (
+        {"event": "runtime", "mode": "isolated"},
+        {"event": "stateful-sentinel", "action": "activation"},
+    ) or (
+        isinstance(event, dict)
+        and set(event) == {"event", "scope", "level"}
+        and event["event"] == "verify"
+        and event["scope"] in {"docs", "app", "alpha", "beta", "runtime"}
+        and event["level"] == "fast"
+    )
+
+
+def valid_expectation(event):
+    return valid_event(event) or (
+        isinstance(event, dict)
+        and set(event) == {"event"}
+        and event["event"] in {"verify", "runtime", "stateful-sentinel"}
+    )
+
+
+def prepare(name):
+    spec = scenario(name)
+    work = Path(tempfile.mkdtemp(prefix=f"harness-behavioral-{name}-"))
+    workspace = work / "repository"
+    shutil.copytree(SEED, workspace)
+    metadata = workspace / META
+    metadata.mkdir()
+    (metadata / "scenario.json").write_text(json.dumps({"id": name, "baseline": files(workspace)}, sort_keys=True), encoding="utf-8")
+    print(workspace)
+    print(f"prompt={LAB / spec['prompt']}")
+    print("telemetry=excluded; run Codex manually or in an isolated profile only")
+
+
+def event_matches(event, expected):
+    return all(event.get(key) == value for key, value in expected.items())
+
+
+def check(workspace):
+    metadata = workspace / META / "scenario.json"
+    if not metadata.is_file():
+        raise ValueError("workspace was not prepared by behavioral-lab")
+    try:
+        state = json.loads(metadata.read_text(encoding="utf-8"))
+        spec = scenario(state["id"])
+        baseline = state["baseline"]
+    except (KeyError, ValueError, TypeError) as exc:
+        raise ValueError("prepared workspace metadata is invalid") from exc
+    if not isinstance(baseline, dict):
+        raise ValueError("prepared workspace baseline is invalid")
+    current = files(workspace)
+    changed = sorted(path for path in set(baseline) | set(current) if baseline.get(path) != current.get(path))
+    disallowed = [path for path in changed if path not in spec["allowed_changes"]]
+    audit = workspace / META / "audit.jsonl"
+    events = []
+    if audit.exists():
+        try:
+            for line in audit.read_text(encoding="utf-8").splitlines():
+                event = json.loads(line)
+                if not valid_event(event):
+                    raise ValueError
+                events.append(event)
+        except ValueError as exc:
+            raise ValueError("fixture audit is invalid") from exc
+    missing_events = [event for event in spec["required_events"] if not any(event_matches(actual, event) for actual in events)]
+    forbidden_events = [event for event in spec["forbidden_events"] if any(event_matches(actual, event) for actual in events)]
+    attestation = workspace / META / "attestation.json"
+    missing_attestation = []
+    if spec["required_attestation"]:
+        try:
+            observed = json.loads(attestation.read_text(encoding="utf-8"))
+            missing_attestation = [key for key, value in spec["required_attestation"].items() if observed.get(key) != value]
+        except (OSError, ValueError, AttributeError):
+            missing_attestation = list(spec["required_attestation"])
+    if missing_attestation:
+        print(f"SUMMARY\tINCONCLUSIVE\tmissing manual attestation: {','.join(missing_attestation)}")
+        return 3
+    if disallowed or missing_events or forbidden_events:
+        print(f"diff\t{'FAIL' if disallowed else 'OK'}\t{','.join(disallowed) or 'allowlist satisfied'}")
+        print(f"events\t{'FAIL' if missing_events or forbidden_events else 'OK'}\tmissing={len(missing_events)} forbidden={len(forbidden_events)}")
+        print("SUMMARY\tBEHAVIORAL_FAIL	fixture evidence did not satisfy scenario")
+        return 1
+    print(f"diff\tOK\t{','.join(changed) or 'no source changes'}")
+    print(f"events\tOK\t{len(events)} fixture events")
+    print("SUMMARY\tPASS	behavioral evidence satisfied")
+    return 0
+
+
+def main(argv):
+    if len(argv) != 2 or argv[0] not in {"prepare", "check"}:
+        print(f"usage: {Path(sys.argv[0]).name} prepare <scenario> | check <workspace>", file=sys.stderr)
+        return 64
+    try:
+        if argv[0] == "prepare":
+            prepare(argv[1])
+            return 0
+        return check(Path(argv[1]).resolve())
+    except (OSError, ValueError) as exc:
+        print(f"SUMMARY\tLAB_ERROR	{exc}")
+        return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

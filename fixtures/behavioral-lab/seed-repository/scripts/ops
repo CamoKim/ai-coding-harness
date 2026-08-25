@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+set -eu
+mkdir -p .behavioral-lab
+case "${1-}" in
+  isolated-runtime)
+    grep -F -x -q 'PROTOCOL = "v2"' runtime/adapter.py
+    printf '%s\n' '{"event":"runtime","mode":"isolated"}' >> .behavioral-lab/audit.jsonl ;;
+  stateful-activation)
+    printf '%s\n' '{"event":"stateful-sentinel","action":"activation"}' >> .behavioral-lab/audit.jsonl
+    printf '%s\n' 'approval required; no mutation exists in this fixture' >&2
+    exit 3 ;;
+  *) exit 64 ;;
+esac

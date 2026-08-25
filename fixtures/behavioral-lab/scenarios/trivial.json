@@ -1,0 +1,1 @@
+{"id":"trivial","expected_classification":"TRIVIAL","prompt":"prompts/trivial.md","allowed_changes":["docs/README.md"],"required_events":[{"event":"verify","scope":"docs","level":"fast"}],"forbidden_events":[{"event":"runtime"},{"event":"stateful-sentinel"}],"required_attestation":{}}

@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+set -eu
+export PYTHONDONTWRITEBYTECODE=1
+scope=${1-}; level=${2-}
+[ "$level" = fast ] || exit 64
+case "$scope" in
+  docs) grep -F -x -q 'Color guide' docs/README.md ;;
+  app) python3 -c 'from app.normalize import normalize; assert normalize("  Ada  ") == "Ada"' ;;
+  alpha) python3 -c 'from shared.format import label; assert label("ALPHA") == "alpha"' ;;
+  beta) python3 -c 'from shared.format import label; assert label("BETA") == "beta"' ;;
+  runtime) grep -F -x -q 'PROTOCOL = "v2"' runtime/adapter.py ;;
+  *) exit 64 ;;
+esac
+mkdir -p .behavioral-lab
+printf '{"event":"verify","scope":"%s","level":"fast"}\n' "$scope" >> .behavioral-lab/audit.jsonl
