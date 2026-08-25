@@ -1,0 +1,64 @@
+#!/usr/bin/env sh
+set -u
+
+if [ "$#" -ne 0 ]; then
+    printf 'usage: %s\n' "$0" >&2
+    exit 64
+fi
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+failures=0
+errors=0
+
+report() { printf '%s\t%s\t%s\n' "$1" "$2" "$3"; }
+action() { failures=$((failures + 1)); }
+error() { errors=$((errors + 1)); }
+parity() {
+    name=$1; source=$2; installed=$3
+    if [ ! -f "$source" ]; then report "$name" ERROR 'source unavailable'; error
+    elif [ ! -e "$installed" ]; then report "$name" MISSING 'installation missing'; action
+    elif [ ! -f "$installed" ] || [ -L "$installed" ]; then report "$name" ERROR 'installation invalid'; error
+    elif cmp -s "$source" "$installed"; then report "$name" OK 'source matches install'
+    else report "$name" DRIFT 'installed content differs from source'; action
+    fi
+}
+
+parity global-parity "$ROOT/templates/global/AGENTS.md" "$HOME/.codex/AGENTS.md"
+parity telemetry-handler "$ROOT/scripts/telemetry-record" "$HOME/.codex/harness/bin/telemetry-record"
+
+hooks_source="$ROOT/templates/telemetry/hooks.json"
+hooks_installed="$HOME/.codex/hooks.json"
+hooks_config="$HOME/.codex/config.toml"
+if [ -f "$hooks_config" ] && { grep -q '^\[hooks\][[:space:]]*\(#.*\)\?$' "$hooks_config" || grep -q '^\[\[hooks\]\][[:space:]]*\(#.*\)\?$' "$hooks_config"; }; then
+    report hooks-config CONFLICT 'inline hooks configuration requires manual review'; action
+else
+    parity hooks-config "$hooks_source" "$hooks_installed"
+fi
+
+marker="$HOME/.codex/harness/telemetry/enabled"
+if [ ! -e "$marker" ]; then
+    report telemetry-opt-in DISABLED 'marker absent'
+elif [ ! -f "$marker" ] || [ -L "$marker" ]; then
+    report telemetry-opt-in INVALID 'marker is not a regular file'; action
+elif [ "$(wc -c < "$marker" | tr -d '[:space:]')" -eq 8 ] && [ "$(sed -n '1p' "$marker")" = enabled ]; then
+    report telemetry-opt-in ENABLED 'valid marker'
+else
+    report telemetry-opt-in INVALID 'marker content is invalid'; action
+fi
+
+if env HARNESS_DOCTOR_RUNNING=1 PYTHONDONTWRITEBYTECODE=1 "$ROOT/scripts/validate" >/dev/null 2>&1; then
+    report harness-validation OK 'validation passed'
+else
+    report harness-validation FAIL 'validation failed'; action
+fi
+
+if status=$(git -C "$ROOT" status --porcelain 2>/dev/null); then
+    if [ -n "$status" ]; then report worktree DIRTY 'changes present'; else report worktree CLEAN 'no changes'; fi
+else
+    report worktree ERROR 'git status unavailable'; error
+fi
+
+if [ "$errors" -ne 0 ]; then report SUMMARY ERROR 'doctor could not complete'; exit 2
+elif [ "$failures" -ne 0 ]; then report SUMMARY ACTION_REQUIRED 'review reported checks'; exit 1
+else report SUMMARY OK 'all required checks healthy'; fi

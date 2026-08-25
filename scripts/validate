@@ -49,6 +49,7 @@ VERSION
 README.md
 docs/architecture.md
 docs/configuration.md
+docs/doctor-contract.md
 docs/execution-policy.md
 docs/telemetry-contract.md
 docs/verification-contract.md
@@ -59,8 +60,10 @@ templates/verification/repository-verify
 templates/verification/subsystem-verify
 scripts/telemetry-record
 scripts/install-telemetry-hooks
+scripts/doctor
 scripts/validate
 tests/test_telemetry_record.py
+tests/test_doctor.py
 '
 
 for path in $required_files; do
@@ -72,6 +75,7 @@ templates/verification/repository-verify
 templates/verification/subsystem-verify
 scripts/validate
 scripts/install-telemetry-hooks
+scripts/doctor
 '
 
 for path in $shell_scripts; do
@@ -85,7 +89,8 @@ done
 
 require_executable scripts/telemetry-record
 require_executable scripts/install-telemetry-hooks
-if python3 -m unittest discover -s tests -p 'test_*.py'; then
+require_executable scripts/doctor
+if PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_*.py'; then
     pass 'telemetry helper tests'
 else
     fail 'telemetry helper tests failed'
@@ -112,6 +117,7 @@ require_heading docs/architecture.md '## Ownership Boundary'
 require_heading docs/architecture.md '## Instruction Hierarchy'
 require_heading docs/configuration.md '## Portable Configuration'
 require_heading docs/configuration.md '## Local Configuration'
+require_heading docs/doctor-contract.md '# Harness Doctor Contract'
 require_heading docs/execution-policy.md '## Task Levels'
 require_heading docs/execution-policy.md '## Autonomy Rules'
 require_heading docs/execution-policy.md '## Project Overrides'
