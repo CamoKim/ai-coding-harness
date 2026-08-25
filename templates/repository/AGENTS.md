@@ -32,10 +32,23 @@ Replace the bracketed prompts with verified repository facts. Remove unused prom
 - Supported levels: `fast`, `full`
 - [Document any repository-wide verification prerequisites.]
 
+## Verification Routing
+
+Maintain one rule for each path group, shared dependency, or contract source that needs distinct verification.
+
+| Changed path or contract source | Affected scopes | Default level | Escalation | Runtime evidence and approval |
+| --- | --- | --- | --- | --- |
+| `[path or contract]` | `[scope, consumer scope]` | `fast` | [cross-scope or `full` condition] | `none`, or `[project-owned isolated/stateful action and approval condition]` |
+
+- Shared dependencies: [map each shared component to its declared direct and transitive consumer scopes.]
+- Full verification: [state only changes for which the project has meaningful required `full` evidence; record unsupported levels honestly.]
+- Runtime evidence: [identify externally observable integration or runtime-path changes and the project-owned evidence action; label stateful actions and required approval.]
+- [Routing selects existing project-owned commands. It does not add changed-file inference to `scripts/verify` or authorize stateful operations.]
+
 ## Execution Policy Overrides
 
 - Additional `HIGH-RISK` work: [list only work that needs stricter treatment in this repository.]
-- Mandatory verification or runtime evidence: [map defined changes to required project-owned evidence.]
+- Mandatory verification or runtime evidence: [record stricter requirements not already expressed in Verification Routing.]
 - Autonomous-operation allowlist or deny list: [state only repository-specific exceptions or restrictions.]
 - [These rules may strengthen the Global execution policy; do not repeat it or weaken its approval boundaries.]
 

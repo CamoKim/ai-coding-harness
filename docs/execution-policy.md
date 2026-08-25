@@ -28,7 +28,7 @@ Classify each task as exactly one of: `TRIVIAL`, `STANDARD`, `COMPLEX`, or `HIGH
 
 ## Verification Boundary
 
-This policy selects the appropriate depth; the repository's verification contract defines commands, prerequisites, mutation limits, and result meanings. An unavailable required environment remains unsupported rather than successful. Runtime E2E is evidence to consider when the changed behavior requires it, not a default requirement.
+Select verification scope, level, and runtime evidence from changed files, affected dependencies and contracts, and the repository's Verification Routing rules. The repository's verification contract defines commands, prerequisites, mutation limits, and result meanings. An unavailable required environment remains unsupported rather than successful. Runtime E2E is evidence to consider when the changed behavior requires it, not a default requirement; stateful evidence still needs the required explicit approval.
 
 ## Project Overrides
 

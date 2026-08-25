@@ -15,7 +15,18 @@ The concrete scope names belong to the project. Common levels are:
 
 Every adopted subsystem should support `fast`. A subsystem may report `full` as unsupported until it has a safe and meaningful implementation.
 
-Changed-file analysis and automatic level selection are outside v0.1. The caller chooses the scope and level explicitly.
+Codex selects scope and level from the changed files, affected dependencies and contracts, and the repository's Verification Routing rules. The selected project-owned verifier remains the only execution entry point.
+
+## Change-aware Routing
+
+Each adopted repository owns a Verification Routing map that declares, for a changed path or contract source:
+
+- affected verification scopes, including declared direct or transitive consumers of shared dependencies;
+- the default level and conditions that require cross-scope or `full` verification;
+- runtime evidence, if any, and whether it is isolated or stateful;
+- the approval condition for stateful runtime evidence.
+
+Route every affected scope, not just the directory containing the changed file. A routing rule may require only `fast`, may require `full` when the project provides meaningful full verification, or may report `full` as unsupported. Runtime evidence is separate from `./scripts/verify`; selecting a stateful runtime action never authorizes running it.
 
 ## Repository Verifier
 

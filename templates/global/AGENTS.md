@@ -17,7 +17,7 @@
 ## Verification
 
 - Never claim a result was verified unless it was actually verified.
-- Run relevant available checks in proportion to the changed behavior and risk.
+- Select relevant project-owned verification scopes, levels, and runtime evidence from changed files, affected dependencies and contracts, and repository routing rules.
 - When behavior changes, add or update appropriate tests when feasible; otherwise report the limitation.
 - Consider runtime E2E when integration or runtime-path behavior needs it; do not run stateful evidence without explicit authorization.
 - Clearly distinguish verified facts, inferences, and unverified assumptions.

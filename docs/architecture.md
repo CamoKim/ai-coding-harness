@@ -22,6 +22,7 @@ Each adopted project owns:
 - its architecture, dependencies, and execution paths;
 - its build, test, lint, and other validation commands;
 - its subsystem-specific risks and compatibility contracts;
+- its changed-file, dependency, and contract routing map for verification;
 - the implementation and maintenance of its verification recipes.
 
 Project commands must not be copied into this repository. This keeps operational knowledge close to the code it governs and avoids drift between Harness templates and project reality.
@@ -53,7 +54,7 @@ Harness source of truth
         → ~/.codex/AGENTS.md
 
     templates/repository/AGENTS.md
-        → <repository>/AGENTS.md
+        → <repository>/AGENTS.md (including verification routing)
 
     templates/subsystem/AGENTS.md
         → <repository>/<subsystem>/AGENTS.md
