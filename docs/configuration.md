@@ -4,7 +4,7 @@
 
 The Harness manages only portable, explicitly adopted configuration. It does not own or replace a user's complete `~/.codex/config.toml`.
 
-Global `AGENTS.md` is the v0.1 priority because it is a stable, portable statement of personal engineering rules. A managed-key strategy for `config.toml` may be added later after the portable keys and update behavior are proven.
+v0.2 safely adopts only Global `AGENTS.md`, the telemetry hook handler, and `hooks.json` through `scripts/harness-install`. A managed-key strategy for `config.toml` remains out of scope until portable keys and update behavior are proven.
 
 ## Portable Configuration
 
@@ -16,7 +16,7 @@ A setting is eligible for Harness management only when it:
 - can be updated without replacing unrelated user configuration;
 - has an explicit owner and documented default.
 
-Examples may include deliberately chosen personal defaults for approval, sandbox, or supported features. No such keys are managed by Build Batch 1.
+Examples may include deliberately chosen personal defaults for approval, sandbox, or supported features. v0.2 manages no `config.toml` keys.
 
 ## Local Configuration
 
@@ -51,4 +51,4 @@ A future configuration tool should operate in this order:
 
 It must not replace the complete user configuration, infer ownership from key names, or copy project trust and plugin state into this repository.
 
-Build Batch 1 intentionally documents this boundary without creating a `config.toml` template or merge implementation.
+v0.2 intentionally documents this boundary without creating a `config.toml` template or merge implementation.

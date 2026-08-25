@@ -65,7 +65,7 @@ Global policy does not invoke telemetry. Hooks invoke only the installed runtime
 
 ## Helper Boundary
 
-`scripts/telemetry-record` is a local deterministic helper for eligibility checking, JSONL append, duplicate prevention, and schema/privacy validation only. It is not a collector, daemon, dashboard, database, or session parser. It does not create local telemetry configuration and is not run unless a task uses the opt-in completion flow.
+`scripts/telemetry-record` is a local deterministic helper for eligibility checking, JSONL append, duplicate prevention, and schema/privacy validation only. It is not a collector, daemon, dashboard, database, or session parser. It does not create local telemetry configuration and runs only when an opted-in hook lifecycle invokes it.
 
 ## Relationship to Existing Policies
 

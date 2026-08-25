@@ -1,64 +1,61 @@
 # AI Coding Harness
 
-개인용 AI Coding Harness를 구축하고, 그 구성과 운영 규칙을 버전 관리하는 저장소입니다.
+Personal AI Coding Harness v0.2 is a small, versioned foundation for Codex work across repositories. It owns durable instructions, task-depth and autonomy policy, change-aware verification routing contracts, optional privacy-safe telemetry hooks, and safe local operational commands. It does not own project build recipes or external runtime state.
 
-이 프로젝트는 AI를 단순한 코드 생성 도구가 아니라 설계, 구현, 검증, 리뷰를 지원하는 개발 시스템으로 활용하는 것을 목표로 합니다.
+## v0.2 scope
 
-## 목표
-
-- 개발 리드타임 단축
-- 코드 품질과 성능 개선
-- 반복 작업 자동화
-- 필요한 사람의 개입 감소
-- 재현하고 검증할 수 있는 AI 개발 워크플로우 구축
-
-## 현재 구현된 범위
-
-다음 항목은 완료되었거나 실제 운영 환경에 적용되어 있습니다.
-
-| 항목 | 상태 | 설명 |
+| Area | Status | Source of truth |
 | --- | --- | --- |
-| AI Coding 가이드 | 완료 | AI 기반 개발의 원칙과 활용 방향을 문서화했습니다. |
-| Global `AGENTS.md` v0.1 | 완료 | 개인 공통 엔지니어링 규칙을 설계했습니다. |
-| 전역 규칙 템플릿 | 완료 | 버전 관리 대상인 [`templates/global/AGENTS.md`](templates/global/AGENTS.md)에 전역 규칙 원본을 관리합니다. |
-| Codex 전역 규칙 적용 | 완료 | 템플릿을 `~/.codex/AGENTS.md`에 적용했고, Codex가 이를 로드하는 것을 확인했습니다. |
-| E1 실행 정책 | 완료 | [`docs/execution-policy.md`](docs/execution-policy.md)에 short prompt 작업 깊이와 자율성 경계를 정의했고, 설치본 Global 규칙에 적용해 source parity를 확인했습니다. |
-| E2 검증 라우팅 | 완료 | 변경 파일·dependency·contract에 따라 project-owned verification scope, level, runtime evidence를 선택하는 contract를 정의했습니다. |
-| E3 효율성 telemetry | 완료 | [`docs/telemetry-contract.md`](docs/telemetry-contract.md)에 opt-in local task JSONL schema와 content-minimization boundary를 정의했습니다. deterministic append helper는 있으나 collector는 없고, repository가 local opt-in marker를 생성하지 않습니다. |
+| E1 Short-Prompt Autonomy | Complete | [execution policy](docs/execution-policy.md) |
+| E2 Change-aware Verification Routing | Complete | [verification contract](docs/verification-contract.md) and repository template |
+| E3 turn-level opt-in telemetry | Complete | [telemetry contract](docs/telemetry-contract.md) |
+| H1–H3 operational commands | Complete | doctor, safe install/update, and safe uninstall contracts |
+| H4 Behavioral Lab | Complete | [Behavioral Lab contract](docs/behavioral-lab-contract.md) |
 
-> `~/.codex/AGENTS.md`는 개인 로컬 환경의 파일이므로 이 저장소에는 포함하지 않습니다. 이 저장소의 기준 파일은 `templates/global/AGENTS.md`입니다.
+The managed Global source is [`templates/global/AGENTS.md`](templates/global/AGENTS.md). Local installed files and telemetry data are never committed.
 
-## 저장소 구성
+## Basic flow
+
+Validate the Harness source first:
 
 ```text
-.
-├── README.md
-├── docs/
-│   ├── execution-policy.md
-│   ├── telemetry-contract.md
-│   └── verification-contract.md
-├── reference/
-│   └── AI_코딩_퍼포먼스_극대화_가이드.docx
-└── templates/
-    └── global/
-        └── AGENTS.md
+./scripts/validate
 ```
 
-## 다음 계획
+Inspect the managed local installation, review the result, then apply only when explicitly intended:
 
-아래 항목은 아직 이 저장소에 구현되지 않았습니다. 실제 개발 작업에서 검증하며 순차적으로 도입합니다.
+```text
+./scripts/harness-install --check
+./scripts/harness-install --apply
+./scripts/doctor
+```
 
-1. **실제 개발 Task에서 Global `AGENTS.md`, E1/E2 정책, opt-in E3 telemetry 평가:** 규칙이 작업 품질, 검증 수준, 협업 흐름에 미치는 효과를 확인하고 개선합니다.
-2. **Project `AGENTS.md`:** 프로젝트별 기술 스택, 테스트 명령, 아키텍처 제약, E1 override와 E2 verification routing을 담는 로컬 규칙을 설계합니다.
-3. **One-command verification:** 테스트, 린트, 타입 검사 등 핵심 검증을 한 번에 실행하는 표준 명령을 마련합니다.
-4. **Skills:** 반복되는 작업 절차를 재사용 가능한 스킬로 정리합니다.
-5. **Custom Agents:** 조사, 구현, 리뷰, 검증처럼 역할이 분명한 작업을 위한 에이전트를 구성합니다.
-6. **Worktree:** 병렬 작업을 안전하게 분리할 수 있는 Git worktree 운영 방식을 도입합니다.
-7. **Hooks:** 작업 전후의 점검과 규칙 적용을 자동화합니다.
-8. **CI 및 자동화:** 검증과 품질 기준을 지속적 통합 환경에서도 일관되게 실행합니다.
+`--apply` changes only the three managed user-level artifacts after safe preflight. It never manages `config.toml`, hooks trust, telemetry consent, records, or transient telemetry state. See the [install contract](docs/install-contract.md) for states and exit codes.
 
-## 운영 원칙
+Use the Behavioral Lab only for manual or semi-automated policy regression evidence; it never launches Codex itself:
 
-- 전역 공통 규칙은 `templates/global/AGENTS.md`를 기준으로 관리합니다.
-- 규칙 변경은 실제 개발 Task에서의 관찰과 검증 결과를 바탕으로 반영합니다.
-- 자동화는 검증 가능한 단계부터 작게 도입하고, 효과가 확인된 뒤 확장합니다.
+```text
+./scripts/behavioral-lab prepare shared-impact
+# Run the printed prompt manually in the isolated workspace.
+./scripts/behavioral-lab check <workspace>
+```
+
+The lab evaluates diff allowlists, fixture audit events, forbidden-event absence, and required manual attestation—not natural-language response strings. Synthetic lab evidence stays in its temporary workspace and must not enter E3 telemetry.
+
+## Uninstall and telemetry
+
+`./scripts/harness-uninstall --check` shows only manifest-proven artifacts that are removable. `--apply` is explicit and preserves `config.toml`, hooks trust, telemetry marker, records, transient state, and Harness directories. See the [uninstall contract](docs/uninstall-contract.md).
+
+Telemetry is optional and turn-level. Only an explicit telemetry opt-in may create or repair `~/.codex/harness/telemetry/enabled`; only explicit opt-out may remove it. Neither install, uninstall, doctor, validation, nor Behavioral Lab changes telemetry consent or records. The [telemetry contract](docs/telemetry-contract.md) defines the privacy boundary.
+
+`scripts/install-telemetry-hooks` is deprecated, makes no changes, and exits with guidance to use `./scripts/harness-install --check|--apply`.
+
+## Not in v0.2
+
+- E4 analysis based on accumulated real-work telemetry
+- model or subagent routing, model-driven telemetry collection, and automatic Codex behavioral execution
+- project-specific verification recipes, verify-auto frameworks, or runtime orchestration
+- telemetry daemon, dashboard, database, or purge-data function
+- CI, worktree orchestration, new agent framework, or external-service automation
+
+See [CHANGELOG.md](CHANGELOG.md) for the release summary.

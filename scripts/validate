@@ -46,6 +46,7 @@ require_heading() {
 
 required_files='
 VERSION
+CHANGELOG.md
 README.md
 docs/architecture.md
 docs/behavioral-lab-contract.md
@@ -142,6 +143,7 @@ require_heading templates/subsystem/AGENTS.md '## Sources of Truth and Generated
 require_heading templates/subsystem/AGENTS.md '## Environment Limitations'
 require_heading docs/architecture.md '## Ownership Boundary'
 require_heading docs/behavioral-lab-contract.md '# Behavioral Lab Contract'
+require_heading CHANGELOG.md '# Changelog'
 require_heading docs/architecture.md '## Instruction Hierarchy'
 require_heading docs/configuration.md '## Portable Configuration'
 require_heading docs/configuration.md '## Local Configuration'

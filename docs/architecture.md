@@ -73,7 +73,7 @@ Project feedback
         → reviewed improvements to Harness contracts and templates
 ```
 
-The Global template is already applied manually. Project bootstrap and managed Global installation are contracts for later implementation; Build Batch 1 does not provide an installer or modify adopted projects.
+`scripts/harness-install` safely adopts the Global template, telemetry handler, and hooks file with local provenance. It does not modify adopted projects or `config.toml`; see the install and uninstall contracts for operational behavior.
 
 ## Verification Architecture
 
@@ -83,11 +83,11 @@ This separation gives Codex one predictable entry point while allowing subsystem
 
 ## Planned Extensions
 
-The following are planned, not implemented in Build Batch 1:
+The following remain planned, not implemented in v0.2:
 
 - reusable Skills for verification, review, and technology research;
 - custom explorer, researcher, and reviewer agents;
-- opt-in, deterministic Hooks after their value is demonstrated;
+- analysis of accumulated opt-in telemetry and any evidence-based routing optimization;
 - CI that invokes stable project-owned verification commands;
 - MCP integrations when external data or actions become necessary.
 
