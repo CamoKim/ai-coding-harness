@@ -24,16 +24,24 @@ parity() {
     fi
 }
 
-parity global-parity "$ROOT/templates/global/AGENTS.md" "$HOME/.codex/AGENTS.md"
-parity telemetry-handler "$ROOT/scripts/telemetry-record" "$HOME/.codex/harness/bin/telemetry-record"
-
 hooks_source="$ROOT/templates/telemetry/hooks.json"
 hooks_installed="$HOME/.codex/hooks.json"
 hooks_config="$HOME/.codex/config.toml"
-if [ -f "$hooks_config" ] && { grep -q '^\[hooks\][[:space:]]*\(#.*\)\?$' "$hooks_config" || grep -q '^\[\[hooks\]\][[:space:]]*\(#.*\)\?$' "$hooks_config"; }; then
-    report hooks-config CONFLICT 'inline hooks configuration requires manual review'; action
+manifest="$HOME/.codex/harness/managed-artifacts.json"
+global_installed="$HOME/.codex/AGENTS.md"
+handler_installed="$HOME/.codex/harness/bin/telemetry-record"
+if { [ ! -e "$manifest" ] && [ ! -L "$manifest" ]; } && { [ ! -e "$global_installed" ] && [ ! -L "$global_installed" ]; } && { [ ! -e "$handler_installed" ] && [ ! -L "$handler_installed" ]; } && { [ ! -e "$hooks_installed" ] && [ ! -L "$hooks_installed" ]; }; then
+    report global-parity NOT_INSTALLED 'no managed artifacts or manifest'
+    report telemetry-handler NOT_INSTALLED 'no managed artifacts or manifest'
+    report hooks-config NOT_INSTALLED 'no managed artifacts or manifest'
 else
-    parity hooks-config "$hooks_source" "$hooks_installed"
+    parity global-parity "$ROOT/templates/global/AGENTS.md" "$global_installed"
+    parity telemetry-handler "$ROOT/scripts/telemetry-record" "$handler_installed"
+    if [ -f "$hooks_config" ] && { grep -q '^\[hooks\][[:space:]]*\(#.*\)\?$' "$hooks_config" || grep -q '^\[\[hooks\]\][[:space:]]*\(#.*\)\?$' "$hooks_config"; }; then
+        report hooks-config CONFLICT 'inline hooks configuration requires manual review'; action
+    else
+        parity hooks-config "$hooks_source" "$hooks_installed"
+    fi
 fi
 
 marker="$HOME/.codex/harness/telemetry/enabled"

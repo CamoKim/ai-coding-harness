@@ -1,0 +1,190 @@
+#!/usr/bin/env python3
+"""Safely detach only Harness artifacts proven by the local manifest."""
+import hashlib
+import json
+import os
+import shutil
+import stat
+import sys
+import tempfile
+from dataclasses import dataclass
+from pathlib import Path
+
+MANIFEST_NAME = "managed-artifacts.json"
+
+
+@dataclass(frozen=True)
+class Artifact:
+    name: str
+    target: Path
+
+
+def targets(home):
+    codex = home / ".codex"
+    return (
+        Artifact("global-agents", codex / "AGENTS.md"),
+        Artifact("telemetry-handler", codex / "harness/bin/telemetry-record"),
+        Artifact("hooks-json", codex / "hooks.json"),
+    )
+
+
+def exists(path):
+    return path.exists() or path.is_symlink()
+
+
+def digest(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def fingerprint(path):
+    if path.is_symlink() or not path.is_file():
+        return None
+    return {"sha256": digest(path), "mode": stat.S_IMODE(path.stat().st_mode)}
+
+
+def valid_fingerprint(value):
+    return (
+        isinstance(value, dict)
+        and set(value) == {"sha256", "mode"}
+        and isinstance(value["sha256"], str)
+        and len(value["sha256"]) == 64
+        and all(character in "0123456789abcdef" for character in value["sha256"])
+        and isinstance(value["mode"], int)
+        and 0 <= value["mode"] <= 0o777
+    )
+
+
+def load_manifest(path, items):
+    if not exists(path):
+        return None, None
+    if path.is_symlink() or not path.is_file() or stat.S_IMODE(path.stat().st_mode) != 0o600:
+        raise ValueError("manifest is not a private regular file")
+    try:
+        payload = path.read_bytes()
+        manifest = json.loads(payload.decode("utf-8"))
+    except (OSError, UnicodeError, ValueError) as exc:
+        raise ValueError("manifest is invalid") from exc
+    records = manifest.get("artifacts") if isinstance(manifest, dict) else None
+    names = {item.name for item in items}
+    if manifest.get("schema_version") != 1 or not isinstance(records, dict) or set(records) != names:
+        raise ValueError("manifest schema is incomplete")
+    if not all(valid_fingerprint(records[item.name]) for item in items):
+        raise ValueError("manifest fingerprint is invalid")
+    return manifest, {"sha256": hashlib.sha256(payload).hexdigest(), "mode": 0o600}
+
+
+def evaluate(items, manifest):
+    if manifest is None:
+        if not any(exists(item.target) for item in items):
+            return [(item, "NOT_INSTALLED", "manifest and target absent") for item in items]
+        return [
+            (item, "UNMANAGED", "target exists without provenance" if exists(item.target) else "target absent without provenance")
+            for item in items
+        ]
+    records = manifest["artifacts"]
+    result = []
+    for item in items:
+        if item.target.is_symlink() or (item.target.exists() and not item.target.is_file()):
+            result.append((item, "CONFLICT", "target is not a regular file"))
+        elif not item.target.exists():
+            result.append((item, "ALREADY_ABSENT", "managed target already absent"))
+        elif fingerprint(item.target) == records[item.name]:
+            result.append((item, "REMOVABLE", "managed baseline matches target"))
+        else:
+            result.append((item, "UNMANAGED_DRIFT", "target differs from managed baseline"))
+    return result
+
+
+def result_code(entries, manifest):
+    states = {state for _, state, _ in entries}
+    if manifest is None and states == {"NOT_INSTALLED"}:
+        return 0
+    if states & {"UNMANAGED", "UNMANAGED_DRIFT", "CONFLICT"}:
+        return 3
+    return 1
+
+
+def report(entries):
+    for item, state, detail in entries:
+        print(f"{item.name}\t{state}\t{detail}")
+    print("hooks-trust\tNOT_MANAGED\tCodex trust and config.toml are never modified")
+    print("telemetry-data\tPRESERVED\tmarker, records, and transient state are excluded")
+
+
+def detach(entries, manifest, manifest_path, manifest_fingerprint, replace=os.replace):
+    quarantine_root = manifest_path.parent
+    work = Path(tempfile.mkdtemp(prefix=".harness-uninstall-", dir=quarantine_root))
+    moved = []
+    order = ("hooks-json", "telemetry-handler", "global-agents")
+    by_name = {item.name: (item, state) for item, state, _ in entries}
+    try:
+        for name in order:
+            item, state = by_name[name]
+            if state == "ALREADY_ABSENT":
+                continue
+            if item.target.is_symlink() or not item.target.is_file() or fingerprint(item.target) != manifest["artifacts"][name]:
+                raise RuntimeError(f"{name} changed during apply")
+            quarantine = work / name
+            replace(item.target, quarantine)
+            moved.append((item, quarantine))
+        for item, _, _ in entries:
+            if exists(item.target):
+                raise RuntimeError(f"{item.name} remains after detach")
+        if fingerprint(manifest_path) != manifest_fingerprint:
+            raise RuntimeError("manifest changed during apply")
+        manifest_path.unlink()
+        return True, "managed artifacts detached and manifest removed"
+    except Exception as exc:
+        rollback_ok = True
+        for item, quarantine in reversed(moved):
+            try:
+                if exists(item.target) or not quarantine.exists():
+                    rollback_ok = False
+                else:
+                    replace(quarantine, item.target)
+            except OSError:
+                rollback_ok = False
+        detail = f"apply failed: {exc}"
+        if not rollback_ok:
+            detail += "; recovery-required: rollback failed"
+        return False, detail
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
+
+def main(argv):
+    if argv not in (["--check"], ["--apply"]):
+        print(f"usage: {Path(sys.argv[0]).name} --check|--apply", file=sys.stderr)
+        return 64
+    home = Path.home()
+    items = targets(home)
+    manifest_path = home / ".codex/harness" / MANIFEST_NAME
+    try:
+        manifest, manifest_fingerprint = load_manifest(manifest_path, items)
+    except (OSError, ValueError) as exc:
+        print(f"manifest\tERROR\t{exc}")
+        print("SUMMARY\tERROR\tno target was changed")
+        return 2
+    entries = evaluate(items, manifest)
+    code = result_code(entries, manifest)
+    report(entries)
+    if argv == ["--check"]:
+        summary = "not installed" if code == 0 else "removal eligible" if code == 1 else "blocked by unmanaged target, drift, or conflict"
+        print(f"SUMMARY\t{'OK' if code == 0 else 'ACTION_REQUIRED' if code == 1 else 'BLOCKED'}\t{summary}")
+        return code
+    if code == 0:
+        print("SUMMARY\tOK\tnot installed; no operation performed")
+        return 0
+    if code == 3:
+        print("SUMMARY\tBLOCKED\tno target or manifest was changed")
+        return 3
+    ok, detail = detach(entries, manifest, manifest_path, manifest_fingerprint)
+    if not ok:
+        print(f"SUMMARY\tERROR\t{detail}")
+        return 2
+    print(f"SUMMARY\tOK\t{detail}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

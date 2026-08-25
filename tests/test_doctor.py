@@ -33,4 +33,11 @@ class DoctorTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn('hooks-config\tOK', result.stdout)
 
+    def test_complete_uninstall_is_a_normal_observation(self):
+        shutil.rmtree(self.home / '.codex')
+        result = self.invoke()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('global-parity\tNOT_INSTALLED', result.stdout)
+        self.assertIn('SUMMARY\tOK', result.stdout)
+
 if __name__ == '__main__': unittest.main()
