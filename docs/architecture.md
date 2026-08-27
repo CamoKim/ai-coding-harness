@@ -13,7 +13,7 @@ The Harness owns:
 - stable personal engineering rules;
 - generic repository and subsystem instruction templates;
 - minimal personal safety instructions that defer generic engineering methodology to Native Codex and Superpowers;
-- the verification interface and dispatcher pattern;
+- the optional verification interface contract;
 - the optional local efficiency-telemetry contract and its data-minimization boundary;
 - contracts for installing and applying Harness artifacts;
 - validation of the Harness repository itself.
@@ -63,9 +63,6 @@ Harness source of truth
     docs/telemetry-contract.md
         → optional local task metrics outside repositories
 
-    templates/verification/*
-        → project-owned verification scripts
-
 Project feedback
         → reviewed improvements to Harness contracts and templates
 ```
@@ -74,9 +71,9 @@ Project feedback
 
 ## Verification Architecture
 
-The repository-level verifier dispatches a requested scope and level. It does not contain build or test commands. A subsystem verifier owns the actual recipe for its subsystem and follows the shared exit-code and reporting contract.
+When a project provides `./scripts/verify <scope> <level>`, that project-owned command dispatches or runs the requested verification. Its implementation and verification recipes remain with the project and follow the shared exit-code and reporting contract.
 
-This separation gives Codex one predictable entry point while allowing subsystems with different stacks and risk profiles to validate themselves correctly.
+Where a project defines that entry point, it gives Codex a predictable command while allowing subsystems with different stacks and risk profiles to validate themselves correctly.
 
 ## Planned Extensions
 

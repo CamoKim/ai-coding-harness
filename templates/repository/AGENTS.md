@@ -24,6 +24,8 @@ Replace the bracketed prompts with verified repository facts. Remove unused prom
 
 ## Verification Entry Point
 
+If this repository provides a stable verification entry point, record it here. Its implementation remains project-owned.
+
 ```text
 ./scripts/verify <scope> <level>
 ```

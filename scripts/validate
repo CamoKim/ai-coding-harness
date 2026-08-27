@@ -59,8 +59,6 @@ docs/verification-contract.md
 templates/global/AGENTS.md
 templates/repository/AGENTS.md
 templates/subsystem/AGENTS.md
-templates/verification/repository-verify
-templates/verification/subsystem-verify
 scripts/telemetry-record
 scripts/install-telemetry-hooks
 scripts/harness-install
@@ -80,8 +78,6 @@ for path in $required_files; do
 done
 
 shell_scripts='
-templates/verification/repository-verify
-templates/verification/subsystem-verify
 scripts/validate
 scripts/install-telemetry-hooks
 scripts/doctor

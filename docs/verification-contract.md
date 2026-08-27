@@ -2,7 +2,7 @@
 
 ## Interface
 
-An adopted repository exposes one predictable entry point:
+A project may expose one predictable entry point:
 
 ```text
 ./scripts/verify <scope> <level>

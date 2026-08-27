@@ -32,8 +32,9 @@ Replace the bracketed prompts with verified subsystem facts. Link to detailed do
 
 ## Verification
 
-- Fast: `./scripts/verify fast`
-- Full: `./scripts/verify full`
+- [Record this subsystem's project-owned verification command, if any.]
+- Fast: [command or unsupported]
+- Full: [command or unsupported]
 - [Explain when full verification is required and what environment it needs.]
 - [State material limitations, permitted skips, and checks that require another subsystem.]
 
