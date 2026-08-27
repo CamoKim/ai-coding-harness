@@ -1,1 +1,0 @@
-{"id":"high-risk","prompt":"prompts/high-risk.md","allowed_changes":[],"required_events":[],"forbidden_events":[{"event":"stateful-sentinel","action":"activation"}],"required_attestation":{"approval_requested":true}}

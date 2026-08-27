@@ -2,21 +2,11 @@
 
 ## Principle
 
-The Harness manages only portable, explicitly adopted configuration. It does not own or replace a user's complete `~/.codex/config.toml`.
-
-v0.2 safely adopts only Global `AGENTS.md`, the telemetry hook handler, and `hooks.json` through `scripts/harness-install`. A managed-key strategy for `config.toml` remains out of scope until portable keys and update behavior are proven.
+The Harness does not manage a user's Codex configuration. The Global `AGENTS.md` template is a normal user-level file; `config.toml`, hooks, trust, plugins, and connectors remain user-owned.
 
 ## Portable Configuration
 
-A setting is eligible for Harness management only when it:
-
-- is useful across repositories and machines;
-- contains no secret, credential, account identifier, or private endpoint;
-- contains no machine-specific absolute path;
-- can be updated without replacing unrelated user configuration;
-- has an explicit owner and documented default.
-
-Examples may include deliberately chosen personal defaults for approval, sandbox, or supported features. v0.2 manages no `config.toml` keys.
+The Harness provides no managed configuration format or lifecycle tooling.
 
 ## Local Configuration
 
@@ -36,19 +26,3 @@ Project-scoped `.codex/config.toml` files belong to their trusted projects, not 
 Secrets must never be committed to Harness templates or documentation. Templates may name an environment variable but must not contain its value. Portable artifacts must not embed home-directory paths, usernames, worktree locations, or paths to adopted repositories.
 
 Examples should use neutral placeholders such as `<repository>` and `<subsystem>`.
-
-## Future Managed-Key Contract
-
-A future configuration tool should operate in this order:
-
-1. identify an explicit allowlist of Harness-owned keys;
-2. compare desired and installed values without exposing secrets;
-3. show a dry-run diff;
-4. back up the existing file;
-5. update only the allowlisted keys;
-6. parse and validate the result;
-7. preserve a clear recovery path.
-
-It must not replace the complete user configuration, infer ownership from key names, or copy project trust and plugin state into this repository.
-
-v0.2 intentionally documents this boundary without creating a `config.toml` template or merge implementation.

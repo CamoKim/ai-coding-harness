@@ -1,1 +1,0 @@
-{"id":"standard","prompt":"prompts/standard.md","allowed_changes":["app/normalize.py"],"required_events":[{"event":"verify","scope":"app","level":"fast"}],"forbidden_events":[{"event":"runtime"},{"event":"stateful-sentinel"}],"required_attestation":{}}

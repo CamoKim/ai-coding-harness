@@ -49,28 +49,12 @@ VERSION
 CHANGELOG.md
 README.md
 docs/architecture.md
-docs/behavioral-lab-contract.md
 docs/configuration.md
-docs/doctor-contract.md
-docs/install-contract.md
-docs/uninstall-contract.md
-docs/telemetry-contract.md
 docs/verification-contract.md
 templates/global/AGENTS.md
 templates/repository/AGENTS.md
 templates/subsystem/AGENTS.md
-scripts/telemetry-record
-scripts/install-telemetry-hooks
-scripts/harness-install
-scripts/harness-uninstall
-scripts/behavioral-lab
-scripts/doctor
 scripts/validate
-tests/test_telemetry_record.py
-tests/test_doctor.py
-tests/test_harness_install.py
-tests/test_harness_uninstall.py
-tests/test_behavioral_lab.py
 '
 
 for path in $required_files; do
@@ -79,8 +63,6 @@ done
 
 shell_scripts='
 scripts/validate
-scripts/install-telemetry-hooks
-scripts/doctor
 '
 
 for path in $shell_scripts; do
@@ -91,33 +73,6 @@ for path in $shell_scripts; do
         fail "invalid shell syntax: $path"
     fi
 done
-
-require_executable scripts/telemetry-record
-require_executable scripts/install-telemetry-hooks
-require_executable scripts/harness-install
-require_executable scripts/harness-uninstall
-require_executable scripts/behavioral-lab
-require_executable scripts/doctor
-if python3 -c 'import ast, pathlib, sys; ast.parse(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))' "$HARNESS_ROOT/scripts/harness-install"; then
-    pass 'Python syntax: scripts/harness-install'
-else
-    fail 'invalid Python syntax: scripts/harness-install'
-fi
-if python3 -c 'import ast, pathlib, sys; ast.parse(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))' "$HARNESS_ROOT/scripts/harness-uninstall"; then
-    pass 'Python syntax: scripts/harness-uninstall'
-else
-    fail 'invalid Python syntax: scripts/harness-uninstall'
-fi
-if python3 -c 'import ast, pathlib, sys; ast.parse(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))' "$HARNESS_ROOT/scripts/behavioral-lab"; then
-    pass 'Python syntax: scripts/behavioral-lab'
-else
-    fail 'invalid Python syntax: scripts/behavioral-lab'
-fi
-if PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_*.py'; then
-    pass 'telemetry helper tests'
-else
-    fail 'telemetry helper tests failed'
-fi
 
 require_heading templates/repository/AGENTS.md '## Repository Map'
 require_heading templates/repository/AGENTS.md '## Shared Dependencies'
@@ -137,35 +92,9 @@ require_heading templates/subsystem/AGENTS.md '## Stateful or Destructive Operat
 require_heading templates/subsystem/AGENTS.md '## Sources of Truth and Generated Artifacts'
 require_heading templates/subsystem/AGENTS.md '## Environment Limitations'
 require_heading docs/architecture.md '## Ownership Boundary'
-require_heading docs/behavioral-lab-contract.md '# Behavioral Lab Contract'
 require_heading CHANGELOG.md '# Changelog'
 require_heading docs/architecture.md '## Instruction Hierarchy'
-require_heading docs/configuration.md '## Portable Configuration'
 require_heading docs/configuration.md '## Local Configuration'
-require_heading docs/doctor-contract.md '# Harness Doctor Contract'
-require_heading docs/install-contract.md '# Harness Install Contract'
-require_heading docs/uninstall-contract.md '# Harness Uninstall Contract'
-require_heading docs/telemetry-contract.md '## Opt-in and Storage'
-require_heading docs/telemetry-contract.md '## Schema'
-require_heading docs/telemetry-contract.md '## Data Minimization'
-require_heading docs/telemetry-contract.md '## Runtime Helper Installation'
-require_heading docs/telemetry-contract.md '## Helper Boundary'
-if ! command -v grep >/dev/null 2>&1; then
-    fail 'grep is required for legacy telemetry path validation'
-else
-    legacy_record_path='tasks.''jsonl'
-    legacy_matches=$(find docs scripts templates -type f -exec grep -F -l "$legacy_record_path" {} \; 2>&1)
-    scan_status=$?
-    if [ "$scan_status" -ne 0 ]; then
-        printf '%s\n' "$legacy_matches" >&2
-        fail 'legacy telemetry path validation scan failed'
-    elif [ -n "$legacy_matches" ]; then
-        printf '%s\n' "$legacy_matches" >&2
-        fail 'legacy telemetry task record path found'
-    else
-        pass 'turn telemetry record path is canonical'
-    fi
-fi
 require_heading docs/verification-contract.md '## Change-aware Routing'
 require_heading docs/verification-contract.md '## Exit Codes'
 require_heading docs/verification-contract.md '## Mutation Boundary'

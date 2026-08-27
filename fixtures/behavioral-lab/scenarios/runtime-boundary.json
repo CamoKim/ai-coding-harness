@@ -1,1 +1,0 @@
-{"id":"runtime-boundary","prompt":"prompts/runtime-boundary.md","allowed_changes":["runtime/adapter.py"],"required_events":[{"event":"verify","scope":"runtime","level":"fast"},{"event":"runtime","mode":"isolated"}],"forbidden_events":[{"event":"stateful-sentinel"}],"required_attestation":{}}

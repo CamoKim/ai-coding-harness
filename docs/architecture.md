@@ -14,8 +14,6 @@ The Harness owns:
 - generic repository and subsystem instruction templates;
 - minimal personal safety instructions that defer generic engineering methodology to Native Codex and Superpowers;
 - the optional verification interface contract;
-- the optional local efficiency-telemetry contract and its data-minimization boundary;
-- contracts for installing and applying Harness artifacts;
 - validation of the Harness repository itself.
 
 Each adopted project owns:
@@ -60,14 +58,11 @@ Harness source of truth
     templates/subsystem/AGENTS.md
         → <repository>/<subsystem>/AGENTS.md
 
-    docs/telemetry-contract.md
-        → optional local task metrics outside repositories
-
 Project feedback
         → reviewed improvements to Harness contracts and templates
 ```
 
-`scripts/harness-install` safely adopts the Global template, telemetry handler, and hooks file with local provenance. It does not modify adopted projects or `config.toml`; see the install and uninstall contracts for operational behavior.
+The Global template is a normal user-level file. The Harness does not manage its installation, provenance, or lifecycle.
 
 ## Verification Architecture
 
@@ -79,8 +74,7 @@ Where a project defines that entry point, it gives Codex a predictable command w
 
 The following remain planned, not implemented in v0.2:
 
-- analysis of accumulated opt-in telemetry and any evidence-based routing optimization;
 - CI that invokes stable project-owned verification commands;
 - MCP integrations when external data or actions become necessary.
 
-Native Codex and optional methodology providers such as Superpowers supply generic engineering workflows. Hooks and CI will enforce only contracts that have first proven reliable through local use.
+Native Codex and optional methodology providers such as Superpowers supply generic engineering workflows. The Harness keeps only project-local contracts that require reusable expression.
