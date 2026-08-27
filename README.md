@@ -1,12 +1,11 @@
 # AI Coding Harness
 
-Personal AI Coding Harness v0.2 is a small, versioned foundation for Codex work across repositories. It owns durable instructions, task-depth and autonomy policy, change-aware verification routing contracts, optional privacy-safe telemetry hooks, and safe local operational commands. It does not own project build recipes or external runtime state.
+Personal AI Coding Harness v0.2 is a small, versioned foundation for Codex work across repositories. It owns durable safety instructions, change-aware verification routing contracts, optional privacy-safe telemetry hooks, and safe local operational commands. It does not own project build recipes or external runtime state.
 
 ## v0.2 scope
 
 | Area | Status | Source of truth |
 | --- | --- | --- |
-| E1 Short-Prompt Autonomy | Complete | [execution policy](docs/execution-policy.md) |
 | E2 Change-aware Verification Routing | Complete | [verification contract](docs/verification-contract.md) and repository template |
 | E3 turn-level opt-in telemetry | Complete | [telemetry contract](docs/telemetry-contract.md) |
 | H1–H3 operational commands | Complete | doctor, safe install/update, and safe uninstall contracts |

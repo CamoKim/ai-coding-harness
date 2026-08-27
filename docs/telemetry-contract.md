@@ -48,7 +48,7 @@ Fields unavailable from stable hook input are `null`, never guessed or represent
 ### Field Rules
 
 - `record_id` is random and not derived from a prompt, repository, source file, or session identifier.
-- `model` is the active hook model. `reasoning_effort`, classification, follow-ups, verification routing/retries, runtime E2E, and outcome are `null` because hooks do not expose them reliably.
+- `model` is the active hook model. `reasoning_effort`, the retained compatibility `task_classification` field, follow-ups, verification routing/retries, runtime E2E, and outcome are `null` because hooks do not expose them reliably.
 - `approval_request_count` counts permission requests, not approvals. `subagent_count` counts `SubagentStart` events.
 
 ## Data Minimization
@@ -69,4 +69,4 @@ Global policy does not invoke telemetry. Hooks invoke only the installed runtime
 
 ## Relationship to Existing Policies
 
-Telemetry does not alter E1 autonomy, E2 verification routing, or any approval boundary. It observes the task's selected classification and evidence after the fact. Runtime E2E approval, verification execution, and subagent use continue to follow their existing contracts.
+Telemetry does not alter verification routing or any approval boundary. It does not infer task classification. Runtime E2E approval and verification execution continue to follow project-local contracts.

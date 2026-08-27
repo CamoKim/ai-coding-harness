@@ -29,6 +29,11 @@ class BehavioralLabTest(unittest.TestCase):
             metadata = json.loads((workspace / ".behavioral-lab/scenario.json").read_text())
             self.assertEqual(metadata["id"], name)
 
+    def test_scenarios_do_not_encode_harness_task_classification(self):
+        for path in sorted((ROOT / "fixtures/behavioral-lab/scenarios").glob("*.json")):
+            metadata = json.loads(path.read_text(encoding="utf-8"))
+            self.assertNotIn("expected_classification", metadata)
+
     def test_trivial_passes_from_diff_and_verify_event(self):
         workspace = self.prepare("trivial")
         (workspace / "docs/README.md").write_text("Color guide\n", encoding="utf-8")

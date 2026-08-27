@@ -54,7 +54,6 @@ docs/configuration.md
 docs/doctor-contract.md
 docs/install-contract.md
 docs/uninstall-contract.md
-docs/execution-policy.md
 docs/telemetry-contract.md
 docs/verification-contract.md
 templates/global/AGENTS.md
@@ -150,10 +149,6 @@ require_heading docs/configuration.md '## Local Configuration'
 require_heading docs/doctor-contract.md '# Harness Doctor Contract'
 require_heading docs/install-contract.md '# Harness Install Contract'
 require_heading docs/uninstall-contract.md '# Harness Uninstall Contract'
-require_heading docs/execution-policy.md '## Task Levels'
-require_heading docs/execution-policy.md '## Autonomy Rules'
-require_heading docs/execution-policy.md '## Project Overrides'
-require_heading docs/execution-policy.md '## Optional Methodology Providers'
 require_heading docs/telemetry-contract.md '## Opt-in and Storage'
 require_heading docs/telemetry-contract.md '## Schema'
 require_heading docs/telemetry-contract.md '## Data Minimization'

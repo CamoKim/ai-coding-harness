@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Personal AI Coding Harness v0.2 provides a small, reusable foundation for working with Codex across repositories. It standardizes durable instructions, task-depth and autonomy boundaries, and the interface used to invoke project-owned verification without centralizing project knowledge.
+Personal AI Coding Harness v0.2 provides a small, reusable foundation for working with Codex across repositories. It standardizes durable safety instructions and the interface used to invoke project-owned verification without centralizing project knowledge.
 
 The goal is a feedback-driven harness: begin with a minimal contract, use it in real projects, and promote only repeated, proven practices into shared artifacts.
 
@@ -12,7 +12,7 @@ The Harness owns:
 
 - stable personal engineering rules;
 - generic repository and subsystem instruction templates;
-- the execution-policy contract for task depth and user-direction boundaries;
+- minimal personal safety instructions that defer generic engineering methodology to Native Codex and Superpowers;
 - the verification interface and dispatcher pattern;
 - the optional local efficiency-telemetry contract and its data-minimization boundary;
 - contracts for installing and applying Harness artifacts;
@@ -60,9 +60,6 @@ Harness source of truth
     templates/subsystem/AGENTS.md
         → <repository>/<subsystem>/AGENTS.md
 
-    docs/execution-policy.md
-        → task classification and autonomy decisions
-
     docs/telemetry-contract.md
         → optional local task metrics outside repositories
 
@@ -85,12 +82,8 @@ This separation gives Codex one predictable entry point while allowing subsystem
 
 The following remain planned, not implemented in v0.2:
 
-- reusable Skills for verification, review, and technology research;
-- custom explorer, researcher, and reviewer agents;
 - analysis of accumulated opt-in telemetry and any evidence-based routing optimization;
 - CI that invokes stable project-owned verification commands;
 - MCP integrations when external data or actions become necessary.
 
-Skills will package repeatable workflows. Custom Agents will isolate genuinely independent roles. Hooks and CI will enforce only contracts that have first proven reliable through local use.
-
-The execution policy does not require a skill bundle. Optional methodology providers such as Superpowers may supply planning, TDD, debugging, review, or collaboration workflows, while the Harness retains responsibility only for task depth and autonomy boundaries.
+Native Codex and optional methodology providers such as Superpowers supply generic engineering workflows. Hooks and CI will enforce only contracts that have first proven reliable through local use.

@@ -45,13 +45,6 @@ Maintain one rule for each path group, shared dependency, or contract source tha
 - Runtime evidence: [identify externally observable integration or runtime-path changes and the project-owned evidence action; label stateful actions and required approval.]
 - [Routing selects existing project-owned commands. It does not add changed-file inference to `scripts/verify` or authorize stateful operations.]
 
-## Execution Policy Overrides
-
-- Additional `HIGH-RISK` work: [list only work that needs stricter treatment in this repository.]
-- Mandatory verification or runtime evidence: [record stricter requirements not already expressed in Verification Routing.]
-- Autonomous-operation allowlist or deny list: [state only repository-specific exceptions or restrictions.]
-- [These rules may strengthen the Global execution policy; do not repeat it or weaken its approval boundaries.]
-
 ## Generated, Runtime, and Secret Data
 
 - Sources of truth: [list source files or directories]

@@ -30,11 +30,10 @@ def scenario(name):
         value = json.loads(path.read_text(encoding="utf-8"))
     except ValueError as exc:
         raise ValueError("invalid scenario metadata") from exc
-    required = {"id", "expected_classification", "prompt", "allowed_changes", "required_events", "forbidden_events", "required_attestation"}
+    required = {"id", "prompt", "allowed_changes", "required_events", "forbidden_events", "required_attestation"}
     if (
         set(value) != required
         or value["id"] != name
-        or value["expected_classification"] not in {"TRIVIAL", "STANDARD", "COMPLEX", "HIGH-RISK"}
         or not isinstance(value["prompt"], str)
         or not isinstance(value["allowed_changes"], list)
         or not all(isinstance(path, str) and not path.startswith(".") for path in value["allowed_changes"])
