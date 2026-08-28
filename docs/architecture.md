@@ -2,11 +2,20 @@
 
 ## Purpose
 
-Personal AI Coding Harness v0.2 provides a small, reusable foundation for working with Codex across repositories. It standardizes durable safety instructions and the interface used to invoke project-owned verification without centralizing project knowledge.
+Personal AI Coding Harness v0.3 provides a small, reusable foundation for working with Codex across repositories. It standardizes durable safety instructions and the interface used to invoke project-owned verification without centralizing project knowledge.
 
 The goal is a feedback-driven harness: begin with a minimal contract, use it in real projects, and promote only repeated, proven practices into shared artifacts.
 
 ## Ownership Boundary
+
+| Owner | Owns | Does not own here |
+| --- | --- | --- |
+| Native Codex | reasoning, execution, tools, approvals, sessions, `/goal`, subagents, review capability, `codex exec`, hooks, and native capabilities | project-specific facts and verification recipes |
+| Superpowers | generic engineering methodology: brainstorming, planning, TDD, debugging, review methodology, and verification discipline | duplicate Harness instructions or project knowledge |
+| This Harness | project-specific facts, architecture, constraints, safety boundaries, instruction hierarchy, and verification contracts | generic methodology, native Codex features, or runtime orchestration |
+| OMX (optional) | durable or team orchestration when it materially helps | the normal single-user coding workflow |
+
+The Harness must not duplicate generic Superpowers methodology. A project records the local facts that let Codex and Superpowers apply their own capabilities correctly.
 
 The Harness owns:
 
@@ -70,9 +79,13 @@ When a project provides `./scripts/verify <scope> <level>`, that project-owned c
 
 Where a project defines that entry point, it gives Codex a predictable command while allowing subsystems with different stacks and risk profiles to validate themselves correctly.
 
+## Optional OMX
+
+Use OMX only when work needs durable coordination across people, agents, or a long-running runtime. Normal repository work, task planning, implementation, verification, and review remain in Native Codex with the project’s own instructions and verifier.
+
 ## Planned Extensions
 
-The following remain planned, not implemented in v0.2:
+The following remain planned, not implemented in v0.3:
 
 - CI that invokes stable project-owned verification commands;
 - MCP integrations when external data or actions become necessary.

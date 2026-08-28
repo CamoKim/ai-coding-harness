@@ -8,12 +8,12 @@ A project may expose one predictable entry point:
 ./scripts/verify <scope> <level>
 ```
 
-The concrete scope names belong to the project. Common levels are:
+The concrete scope names, levels, and implementation belong to the project. Common levels are:
 
 - `fast`: relevant, low-cost checks suitable for normal iteration;
 - `full`: `fast` checks plus relevant higher-cost or environment-dependent checks.
 
-Every adopted subsystem should support `fast`. A subsystem may report `full` as unsupported until it has a safe and meaningful implementation.
+Use `fast` for the normal, low-cost evidence available for a scope. A project may report `full` as unsupported until it has safe and meaningful higher-cost evidence.
 
 Codex selects scope and level from the changed files, affected dependencies and contracts, and the repository's Verification Routing rules. The selected project-owned verifier remains the only execution entry point.
 
@@ -28,26 +28,11 @@ Each adopted repository owns a Verification Routing map that declares, for a cha
 
 Route every affected scope, not just the directory containing the changed file. A routing rule may require only `fast`, may require `full` when the project provides meaningful full verification, or may report `full` as unsupported. Runtime evidence is separate from `./scripts/verify`; selecting a stateful runtime action never authorizes running it.
 
-## Repository Verifier
+## Implementation Freedom
 
-The repository verifier:
+The project may map a scope and level directly to existing commands, use a small wrapper, or omit this interface when its current project-owned commands are clearer. It does not need a root dispatcher, per-subsystem scripts, an `all` scope, changed-file inference, or a shared verification framework.
 
-- validates the requested scope and level;
-- resolves the subsystem verifier for that scope;
-- dispatches the request and propagates its result;
-- supports an explicit `all` scope by invoking known subsystem verifiers;
-- contains no subsystem build, test, lint, or runtime commands.
-
-## Subsystem Verifier
-
-The subsystem verifier:
-
-- owns the actual verification recipe;
-- checks required tools and environment before dependent checks;
-- prints each command before executing it, without exposing secrets;
-- distinguishes checks actually run from checks not run;
-- returns a documented non-zero status on failure or unsupported environment;
-- avoids modifying application, infrastructure, or production state.
+Whatever form a project chooses, keep the actual recipes near the code they validate. Make the checks actually run, checks not run, and unsupported environments observable without exposing secrets. The verifier or documented commands must not modify application, infrastructure, or production state by default.
 
 ## Exit Codes
 

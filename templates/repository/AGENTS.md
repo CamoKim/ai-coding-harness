@@ -1,6 +1,8 @@
 # Repository Guide
 
-Replace the bracketed prompts with verified repository facts. Remove unused prompts and keep detailed subsystem instructions in the closest subsystem `AGENTS.md`.
+Preserve useful existing repository instructions, then add or merge these sections with verified repository facts. Do not replace existing guidance blindly. Remove unused prompts and keep detailed subsystem instructions in the closest subsystem `AGENTS.md`.
+
+This file owns repository-specific facts, constraints, compatibility contracts, and verification routing. Generic planning, TDD, debugging, review, and verification methodology belong to Superpowers and Native Codex, not here.
 
 ## Repository Map
 

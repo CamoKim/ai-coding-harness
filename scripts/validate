@@ -44,11 +44,23 @@ require_heading() {
     fi
 }
 
+require_text() {
+    path=$1
+    required_text=$2
+    if grep -F -q -- "$required_text" "$HARNESS_ROOT/$path"; then
+        pass "required text in $path: $required_text"
+    else
+        fail "missing required text in $path: $required_text"
+    fi
+}
+
 required_files='
 VERSION
 CHANGELOG.md
 README.md
 docs/architecture.md
+docs/adoption.md
+docs/daily-usage.md
 docs/configuration.md
 docs/verification-contract.md
 templates/global/AGENTS.md
@@ -91,13 +103,38 @@ require_heading templates/subsystem/AGENTS.md '## Verification'
 require_heading templates/subsystem/AGENTS.md '## Stateful or Destructive Operations'
 require_heading templates/subsystem/AGENTS.md '## Sources of Truth and Generated Artifacts'
 require_heading templates/subsystem/AGENTS.md '## Environment Limitations'
+require_heading templates/global/AGENTS.md '## Efficiency and Escalation'
 require_heading docs/architecture.md '## Ownership Boundary'
+require_heading docs/architecture.md '## Optional OMX'
 require_heading CHANGELOG.md '# Changelog'
+require_heading docs/adoption.md '## Safe Manual Adoption'
+require_heading docs/adoption.md '## Decide Where Information Belongs'
+require_heading docs/adoption.md '## Define Project Verification'
+require_heading docs/daily-usage.md '## Everyday Requests'
+require_heading docs/daily-usage.md '## Native Codex Capabilities'
+require_heading docs/daily-usage.md '## Optional OMX'
 require_heading docs/architecture.md '## Instruction Hierarchy'
 require_heading docs/configuration.md '## Local Configuration'
 require_heading docs/verification-contract.md '## Change-aware Routing'
 require_heading docs/verification-contract.md '## Exit Codes'
 require_heading docs/verification-contract.md '## Mutation Boundary'
+require_text README.md 'Native Codex owns its native capabilities'
+require_text README.md 'Superpowers supplies generic engineering methodology'
+require_text templates/global/AGENTS.md 'Correctness comes first'
+require_text templates/global/AGENTS.md 'smallest workflow that can safely complete the task'
+require_text templates/global/AGENTS.md 'Do not repeat a successful check unless'
+require_text templates/global/AGENTS.md 'Do not repeatedly poll or wait for agents'
+require_text templates/global/AGENTS.md 'Do not use token budgets, arbitrary limits'
+require_text docs/adoption.md '~/.codex/AGENTS.md'
+require_text docs/adoption.md './scripts/verify <scope> <level>'
+require_text docs/daily-usage.md '/goal <outcome>'
+require_text docs/daily-usage.md 'native subagents'
+require_text docs/daily-usage.md 'Git worktrees'
+require_text docs/daily-usage.md 'Codex review'
+require_text docs/daily-usage.md 'codex exec'
+require_text docs/daily-usage.md 'native hooks'
+require_text docs/daily-usage.md './scripts/verify <scope> fast'
+require_text docs/daily-usage.md 'Use OMX only when'
 
 text_paths='
 VERSION
@@ -135,6 +172,12 @@ case "$version_line_count:$version" in
         ;;
     *) fail 'VERSION must contain dot-separated numeric components on one line' ;;
 esac
+
+if grep -F -x -q -- "## $version" "$HARNESS_ROOT/CHANGELOG.md"; then
+    pass "current version has changelog entry: $version"
+else
+    fail "missing changelog entry for current version: $version"
+fi
 
 if [ "$failures" -ne 0 ]; then
     printf '\nHarness validation failed with %s issue(s).\n' "$failures" >&2

@@ -1,6 +1,8 @@
 # Subsystem Guide
 
-Replace the bracketed prompts with verified subsystem facts. Link to detailed documentation instead of copying it into this file.
+Create this file only when a subtree has genuinely distinct execution paths, contracts, risks, or safety constraints. Preserve any useful existing local instructions, replace the bracketed prompts with verified subsystem facts, and link to detailed documentation instead of copying it into this file.
+
+This file owns local facts and contracts, not generic engineering methodology.
 
 ## Purpose and Scope
 
