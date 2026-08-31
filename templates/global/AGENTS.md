@@ -7,6 +7,7 @@
 - Ask before changing production or shared state, performing a destructive operation, or crossing a credential or security boundary.
 - Ask before running stateful runtime evidence.
 - Follow the nearest repository or subsystem `AGENTS.md` and project-local contracts for project-specific requirements.
+- For an authenticated external work-document or service URL, first check for a connected official app or connector and its direct-read permission. Use it before general web access or requesting copied content; do not call a resource unavailable solely because general web access failed.
 
 ## Efficiency and Escalation
 

@@ -125,6 +125,7 @@ require_text templates/global/AGENTS.md 'smallest workflow that can safely compl
 require_text templates/global/AGENTS.md 'Do not repeat a successful check unless'
 require_text templates/global/AGENTS.md 'Do not repeatedly poll or wait for agents'
 require_text templates/global/AGENTS.md 'Do not use token budgets, arbitrary limits'
+require_text templates/global/AGENTS.md 'connected official app or connector'
 require_text docs/adoption.md '~/.codex/AGENTS.md'
 require_text docs/adoption.md './scripts/verify <scope> <level>'
 require_text docs/daily-usage.md '/goal <outcome>'

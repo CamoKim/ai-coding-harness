@@ -4,6 +4,8 @@
 
 The Harness does not manage a user's Codex configuration. The Global `AGENTS.md` template is a normal user-level file; `config.toml`, hooks, trust, plugins, and connectors remain user-owned.
 
+When a task supplies an authenticated external work-document or service URL, Codex must first use an already connected official app or connector when one has the needed direct-read permission. The Harness does not install plugins, expand permissions, or bypass authorization; it only requires that a general web-access failure is not treated as proof that the resource is unavailable.
+
 ## Portable Configuration
 
 The Harness provides no managed configuration format or lifecycle tooling.
