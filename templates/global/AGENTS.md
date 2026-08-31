@@ -11,7 +11,8 @@
 
 ## Efficiency and Escalation
 
-- Correctness comes first. Prefer the smallest workflow that can safely complete the task; add planning, subagents, independent review, or broad verification only when they materially improve correctness, safety, or throughput.
+- Correctness comes first. Prefer the smallest workflow that can safely complete the task. For a small, well-scoped change in a clean working tree, work in the current checkout by default; add a separate implementation plan, subagents, independent review, or broad verification only when they materially improve correctness, safety, or throughput.
+- Do not create or switch to a Git worktree unless isolation materially improves correctness, safety, or throughput—for example, for parallel work, risky or broad changes, preserving unrelated ongoing work, or an explicit user request. TDD, debugging, and other useful implementation methodology do not by themselves require a separate plan or worktree.
 - During implementation, run the smallest targeted check that proves the current change. Run broader or final verification after the relevant implementation is stable.
 - Do not repeat a successful check unless relevant code, configuration, environment, or assumptions changed.
 - Do not repeatedly poll or wait for agents when no new evidence is expected; continue useful independent work or wait efficiently.
