@@ -92,7 +92,7 @@ Expected: only Harness documentation is committed. The user-level tool installat
 codex-headroom [codex arguments...]
 ```
 
-The command must invoke `headroom wrap codex --code-memory none --` and pass every user argument unchanged. It must create its own private configuration backup before starting Headroom and must not `exec` the Headroom command.
+The command must invoke `headroom wrap codex --code-memory none --` and pass every user argument unchanged. It must create its own private configuration backup before starting Headroom and must not `exec` the Headroom command. Its normal target is `/home/obigo/.codex/config.toml`; `CODEX_HEADROOM_CONFIG` is a test-only override that permits the hermetic test to use a copied configuration.
 
 - [ ] **Step 1: Write the failing hermetic wrapper test**
 
@@ -118,6 +118,18 @@ none
 read only
 ```
 
+The hermetic test must additionally use `CODEX_HEADROOM_CONFIG` to point the
+copied wrapper at a copied configuration, never the real user configuration.
+Its fake Headroom child must record its PID, mutate that copied configuration,
+and remain alive until the test signals the wrapper. Deliver `TERM` to the
+wrapper while that direct child is live; assert the wrapper terminates and
+waits for the child, the child PID is no longer live, and `cmp --silent` proves
+the copied configuration equals its pre-launch copy. Finally, simulate a
+restore failure (for example, with a fake `install` that permits the initial
+backup but rejects backup-to-configuration restoration), assert the wrapper
+exits nonzero, and assert the controlled private backup path remains. This
+failure case must not delete the retained backup.
+
 - [ ] **Step 2: Prove the test fails before the wrapper exists**
 
 Run:
@@ -136,7 +148,11 @@ Write `/home/obigo/.local/bin/codex-headroom`:
 #!/usr/bin/env bash
 set -euo pipefail
 
-config=/home/obigo/.codex/config.toml
+config=${CODEX_HEADROOM_CONFIG:-/home/obigo/.codex/config.toml}
+[[ -f "$config" ]] || {
+  printf '%s\n' "codex-headroom: missing config: $config" >&2
+  exit 2
+}
 backup="$(mktemp /tmp/headroom-codex-config.toml.XXXXXX)"
 child_pid=
 
@@ -145,7 +161,8 @@ install -m 600 "$config" "$backup"
 
 cleanup() {
   local status=$?
-  trap - EXIT HUP INT TERM
+  trap - EXIT
+  trap '' HUP INT TERM
 
   if [[ -n "$child_pid" ]] && kill -0 "$child_pid" 2>/dev/null; then
     kill -TERM "$child_pid" 2>/dev/null || true
@@ -163,18 +180,25 @@ cleanup() {
     printf '%s\n' "codex-headroom: restoration could not be proven; retaining $backup" >&2
     exit 1
   fi
-  sha256sum "$config" "$backup"
-  rm -f "$backup"
+  sha256sum "$config" "$backup" || {
+    printf '%s\n' "codex-headroom: checksum proof failed; retaining $backup" >&2
+    exit 1
+  }
+  rm -f "$backup" || {
+    printf '%s\n' "codex-headroom: could not remove proven backup: $backup" >&2
+    exit 1
+  }
   exit "$status"
 }
 
 trap cleanup EXIT
+# Ignore catchable termination signals until the direct-child PID is captured.
+trap '' HUP INT TERM
+headroom wrap codex --code-memory none -- "$@" &
+child_pid=$!
 trap 'exit 129' HUP
 trap 'exit 130' INT
 trap 'exit 143' TERM
-
-headroom wrap codex --code-memory none -- "$@" &
-child_pid=$!
 set +e
 wait "$child_pid"
 child_status=$?
@@ -197,7 +221,7 @@ bash /tmp/headroom-codex-wrapper-test.sh
 rm -f /tmp/headroom-codex-wrapper-test.sh
 ```
 
-Expected: both argument cases pass, including `--code-memory none` before the argument separator, and no test file remains. The fake Headroom process must not alter the copied configuration; the wrapper's cleanup therefore proves it unchanged and removes its private backup.
+Expected: both argument cases pass, including `--code-memory none` before the argument separator. The signal test proves the fake child is stopped and the copied configuration is restored byte-for-byte. The failed-restoration test exits nonzero and retains its controlled private backup. The temporary test file and only the success-case backup are removed.
 
 ## Task 3: Run the first-account read-only compatibility spike
 
