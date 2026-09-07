@@ -44,10 +44,13 @@ process.
 The wrapper owns the configuration-restoration boundary. Before it starts the
 supported Headroom child process, it creates a private, byte-for-byte backup of
 `~/.codex/config.toml`. It does not `exec` Headroom: it retains the direct child
-PID and traps `EXIT`, `HUP`, `INT`, and `TERM`. It ignores catchable termination
-signals only while backgrounding Headroom and capturing `$!`, so no signal can
-run cleanup before the direct-child PID is known. The background subshell resets
-those signal dispositions before it `exec`s Headroom, so the direct child can
+PID and installs its `EXIT`, `HUP`, `INT`, and `TERM` cleanup handling before
+creating the backup. Cleanup treats an unset or incomplete backup as removable
+only; it never attempts restoration without a completed backup. It ignores
+catchable termination signals only while backgrounding Headroom and capturing
+`$!`, so no signal can run cleanup before the direct-child PID is known. The
+background subshell resets those signal dispositions before it `exec`s
+Headroom, so the direct child can
 receive termination during cleanup; the wrapper then installs the normal signal
 handlers. Cleanup disables recursive `EXIT` handling and ignores
 `HUP`/`INT`/`TERM` while it terminates and waits for that child, restores the

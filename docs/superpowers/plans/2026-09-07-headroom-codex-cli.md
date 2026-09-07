@@ -162,20 +162,30 @@ config=${CODEX_HEADROOM_CONFIG:-/home/obigo/.codex/config.toml}
   printf '%s\n' "codex-headroom: missing config: $config" >&2
   exit 2
 }
-backup="$(mktemp /tmp/headroom-codex-config.toml.XXXXXX)"
+backup=
+backup_ready=0
 child_pid=
-
-chmod 600 "$backup"
-install -m 600 "$config" "$backup"
 
 cleanup() {
   local status=$?
   trap - EXIT
   trap '' HUP INT TERM
 
-  if [[ -n "$child_pid" ]] && kill -0 "$child_pid" 2>/dev/null; then
+  if [[ -n "${child_pid:-}" ]] && kill -0 "$child_pid" 2>/dev/null; then
     kill -TERM "$child_pid" 2>/dev/null || true
     wait "$child_pid" 2>/dev/null || true
+  fi
+
+  if [[ -z "${backup:-}" || ! -e "$backup" ]]; then
+    exit "$status"
+  fi
+
+  if [[ "$backup_ready" != 1 ]]; then
+    rm -f "$backup" || {
+      printf '%s\n' "codex-headroom: could not remove incomplete backup: $backup" >&2
+      exit 1
+    }
+    exit "$status"
   fi
 
   if ! cmp --silent "$config" "$backup"; then
@@ -201,6 +211,13 @@ cleanup() {
 }
 
 trap cleanup EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
+backup="$(mktemp /tmp/headroom-codex-config.toml.XXXXXX)"
+chmod 600 "$backup"
+install -m 600 "$config" "$backup"
+backup_ready=1
 # Ignore catchable termination signals until the direct-child PID is captured.
 trap '' HUP INT TERM
 (trap - HUP INT TERM; exec headroom wrap codex --code-memory none -- "$@") &
