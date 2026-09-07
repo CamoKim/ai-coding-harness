@@ -32,8 +32,9 @@ codex-headroom ─> Headroom on 127.0.0.1 only ─> OpenAI
 
 Install Headroom in a user-level isolated `uv` tool environment. Prefer its
 supported Codex wrapper/entrypoint over a custom request-rewriting proxy
-configuration. `codex-headroom` invokes `headroom wrap codex --code-memory
-none --` for one terminal session; it must not alter the environment of a
+configuration. `codex-headroom` invokes `headroom wrap codex --no-mcp
+--code-memory none --` for one terminal session; `--no-mcp` prevents Headroom
+from registering its retrieve MCP or writing active Codex configuration. It must not alter the environment of a
 normal `codex` session.
 
 The proxy is on-demand for the first rollout rather than a persistent user
@@ -41,22 +42,9 @@ service. It binds only to loopback, and its lifecycle ends with the wrapper
 session unless the supported Headroom entrypoint requires a short-lived child
 process.
 
-The wrapper owns the configuration-restoration boundary. Before it starts the
-supported Headroom child process, it creates a private, byte-for-byte backup of
-`~/.codex/config.toml`. It does not `exec` Headroom: it retains the direct child
-PID and installs its `EXIT`, `HUP`, `INT`, and `TERM` cleanup handling before
-creating the backup. Cleanup treats an unset or incomplete backup as removable
-only; it never attempts restoration without a completed backup. It ignores
-catchable termination signals only while backgrounding Headroom and capturing
-`$!`, so no signal can run cleanup before the direct-child PID is known. The
-background subshell resets those signal dispositions before it `exec`s
-Headroom, so the direct child can
-receive termination during cleanup; the wrapper then installs the normal signal
-handlers. Cleanup disables recursive `EXIT` handling and ignores
-`HUP`/`INT`/`TERM` while it terminates and waits for that child, restores the
-original configuration if it differs, proves identity with `cmp` and matching
-checksums, and only then removes the backup. An unprovable restoration retains
-the backup and exits nonzero.
+The no-MCP wrapper does not read, write, back up, or restore
+`~/.codex/config.toml`; it directly `exec`s the supported Headroom child so
+normal terminal signal handling applies to that process.
 
 ## Security and Privacy Defaults
 
@@ -65,8 +53,9 @@ the backup and exits nonzero.
   The current Codex authentication flow must pass through unchanged.
 - Disable Headroom memory, traffic learning, telemetry, and request/response
   content logging for the trial.
-- Pass `--code-memory none` on every wrapped launch so Headroom does not
-  register the default Serena code-memory MCP server.
+- Pass `--no-mcp --code-memory none` on every wrapped launch. `--no-mcp`
+  prevents retrieve-MCP registration; `--code-memory none` disables code
+  memory.
 - Record only aggregate compatibility and measurement data: command outcome,
   elapsed time, request count, and any Headroom token/compression counters.
 - Do not enable an aggressive token-reduction profile initially. Start with

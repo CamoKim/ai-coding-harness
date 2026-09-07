@@ -4,7 +4,7 @@
 
 **Goal:** Add and evaluate an opt-in `codex-headroom` command for terminal Codex CLI without changing normal `codex`, the VS Code extension, repository files, or Codex credentials.
 
-**Architecture:** Install Headroom once in a user-level `uv` tool environment. A small `codex-headroom` wrapper delegates to `headroom wrap codex --code-memory none --`, retains Headroom as a direct child, and owns interruption-safe Codex configuration backup/restoration. The supported command starts a loopback-only proxy for that one Codex session. The compatibility trial is performed once per user-selected Codex account and stops on the first routing, authentication, or fidelity failure.
+**Architecture:** Install Headroom once in a user-level `uv` tool environment. A small `codex-headroom` wrapper delegates to `headroom wrap codex --no-mcp --code-memory none --`. `--no-mcp` prevents Headroom from registering its retrieve MCP and therefore leaves Codex configuration untouched. The supported command starts a loopback-only proxy for that one Codex session.
 
 **Tech Stack:** `uv`, `headroom-ai[proxy]`, Bash, Codex CLI, loopback HTTP.
 
@@ -17,15 +17,13 @@
 - Do not create, copy, print, or replace Codex/OpenAI credentials.
 - Do not enable Headroom memory, learning, telemetry, request/response content logs, or an aggressive token mode in this trial.
 - Use Headroom's documented `headroom wrap codex` integration; do not hand-write an OpenAI request-rewriting proxy configuration.
-- Preserve and compare the pre-trial `~/.codex/config.toml` checksum. If Headroom changes it and does not restore it, stop and restore the exact backup before further work.
+- Require `--no-mcp` on every wrapped launch; do not read, modify, or back up `~/.codex/config.toml` in this trial.
 - Treat the active upstream reports of Codex wrapper model and WebSocket failures as a mandatory go/no-go gate, not as a reason to alter normal Codex routing.
 
 ## File Structure
 
-- Create: `/home/obigo/.local/bin/codex-headroom` — opt-in Bash command that delegates to Headroom with code memory disabled and restores `config.toml` safely on normal exit or interruption.
+- Create: `/home/obigo/.local/bin/codex-headroom` — opt-in Bash command that delegates to Headroom with MCP registration and code memory disabled.
 - Create temporarily: `/tmp/headroom-codex-wrapper-test.sh` — hermetic wrapper contract test; remove after it passes.
-- Create temporarily per wrapper invocation: a private `mktemp` backup matching `/tmp/headroom-codex-config.toml.XXXXXX`; remove only after the wrapper proves byte-identical restoration.
-- Modify only through the supported tool during an active wrapper session: `/home/obigo/.codex/config.toml`, if the installed Headroom version uses temporary Codex provider injection. It must match the pre-trial backup after session exit.
 
 ## Task 1: Establish Headroom/Codex compatibility prerequisites
 
@@ -40,11 +38,10 @@ Run:
 ```bash
 command -v codex
 codex --version
-sha256sum /home/obigo/.codex/config.toml
 ss -ltnp '( sport = :8787 )' || true
 ```
 
-Expected: record the existing Codex executable/version and configuration digest; port 8787 is either unused or its listener is identified before continuing.
+Expected: record the existing Codex executable/version; port 8787 is either unused or its listener is identified before continuing.
 
 - [ ] **Step 2: Install Headroom in an isolated tool environment**
 
@@ -92,7 +89,7 @@ Expected: only Harness documentation is committed. The user-level tool installat
 codex-headroom [codex arguments...]
 ```
 
-The command must invoke `headroom wrap codex --code-memory none --` and pass every user argument unchanged. It must create its own private configuration backup before starting Headroom and must not `exec` the Headroom command. Its normal target is `/home/obigo/.codex/config.toml`; `CODEX_HEADROOM_CONFIG` is a test-only override that permits the hermetic test to use a copied configuration.
+The command must invoke `headroom wrap codex --no-mcp --code-memory none --` and pass every user argument unchanged. It must not read, write, back up, or restore Codex configuration.
 
 - [ ] **Step 1: Write the failing hermetic wrapper test**
 
@@ -101,6 +98,7 @@ Create `/tmp/headroom-codex-wrapper-test.sh` with a temporary `PATH` containing 
 ```text
 wrap
 codex
+--no-mcp
 --code-memory
 none
 --
@@ -112,32 +110,17 @@ The test must also assert `codex-headroom -- 'read only'` records the literal fi
 ```text
 wrap
 codex
+--no-mcp
 --code-memory
 none
 --
 read only
 ```
 
-The hermetic test must additionally use `CODEX_HEADROOM_CONFIG` to point the
-copied wrapper at a copied configuration, never the real user configuration.
-Its fake Headroom child must record its PID, mutate that copied configuration,
-and remain alive until the test signals the wrapper. Deliver `TERM` to the
-wrapper while that direct child is live; assert the wrapper terminates and
-waits for the child, the child PID is no longer live, and `cmp --silent` proves
-the copied configuration equals its pre-launch copy. Finally, simulate a
-restore failure (for example, with a fake `install` that permits the initial
-backup but rejects backup-to-configuration restoration), assert the wrapper
-exits nonzero, and assert the controlled private backup path remains. This
-failure case must not delete the retained backup.
-
-Add a second-signal cleanup case with deterministic synchronization: after the
-first `TERM` has entered cleanup and the fake child is being stopped or the
-copied configuration is being restored, deliver a second `HUP`, `INT`, or
-`TERM` to the wrapper. Assert cleanup still completes: the direct child is
-stopped, `cmp --silent` proves the copied configuration byte-identical to its
-pre-launch copy, and the success-case backup is deleted only after the `cmp`
-and checksum proof. The test must fail if the second signal aborts cleanup or
-causes backup deletion before the proof.
+The hermetic test may pass `CODEX_HEADROOM_CONFIG` only as a sentinel copied
+configuration. Its fake Headroom must not modify that file; `cmp --silent` must
+prove the wrapper leaves it unchanged. The test must fail if `--no-mcp` is
+missing, reordered after `--code-memory`, or user arguments are split.
 
 - [ ] **Step 2: Prove the test fails before the wrapper exists**
 
@@ -157,79 +140,7 @@ Write `/home/obigo/.local/bin/codex-headroom`:
 #!/usr/bin/env bash
 set -euo pipefail
 
-config=${CODEX_HEADROOM_CONFIG:-/home/obigo/.codex/config.toml}
-[[ -f "$config" ]] || {
-  printf '%s\n' "codex-headroom: missing config: $config" >&2
-  exit 2
-}
-backup=
-backup_ready=0
-child_pid=
-
-cleanup() {
-  local status=$?
-  trap - EXIT
-  trap '' HUP INT TERM
-
-  if [[ -n "${child_pid:-}" ]] && kill -0 "$child_pid" 2>/dev/null; then
-    kill -TERM "$child_pid" 2>/dev/null || true
-    wait "$child_pid" 2>/dev/null || true
-  fi
-
-  if [[ -z "${backup:-}" || ! -e "$backup" ]]; then
-    exit "$status"
-  fi
-
-  if [[ "$backup_ready" != 1 ]]; then
-    rm -f "$backup" || {
-      printf '%s\n' "codex-headroom: could not remove incomplete backup: $backup" >&2
-      exit 1
-    }
-    exit "$status"
-  fi
-
-  if ! cmp --silent "$config" "$backup"; then
-    install -m 600 "$backup" "$config" || {
-      printf '%s\n' "codex-headroom: restoration failed; retaining $backup" >&2
-      exit 1
-    }
-  fi
-
-  if ! cmp --silent "$config" "$backup"; then
-    printf '%s\n' "codex-headroom: restoration could not be proven; retaining $backup" >&2
-    exit 1
-  fi
-  sha256sum "$config" "$backup" || {
-    printf '%s\n' "codex-headroom: checksum proof failed; retaining $backup" >&2
-    exit 1
-  }
-  rm -f "$backup" || {
-    printf '%s\n' "codex-headroom: could not remove proven backup: $backup" >&2
-    exit 1
-  }
-  exit "$status"
-}
-
-trap cleanup EXIT
-trap 'exit 129' HUP
-trap 'exit 130' INT
-trap 'exit 143' TERM
-backup="$(mktemp /tmp/headroom-codex-config.toml.XXXXXX)"
-chmod 600 "$backup"
-install -m 600 "$config" "$backup"
-backup_ready=1
-# Ignore catchable termination signals until the direct-child PID is captured.
-trap '' HUP INT TERM
-(trap - HUP INT TERM; exec headroom wrap codex --code-memory none -- "$@") &
-child_pid=$!
-trap 'exit 129' HUP
-trap 'exit 130' INT
-trap 'exit 143' TERM
-set +e
-wait "$child_pid"
-child_status=$?
-set -e
-exit "$child_status"
+exec headroom wrap codex --no-mcp --code-memory none -- "$@"
 ```
 
 Run:
@@ -247,7 +158,7 @@ bash /tmp/headroom-codex-wrapper-test.sh
 rm -f /tmp/headroom-codex-wrapper-test.sh
 ```
 
-Expected: both argument cases pass, including `--code-memory none` before the argument separator. The signal test proves the fake child is stopped and the copied configuration is restored byte-for-byte. The failed-restoration test exits nonzero and retains its controlled private backup. The temporary test file and only the success-case backup are removed.
+Expected: both argument cases pass, including `--no-mcp --code-memory none` before the argument separator, and the copied configuration sentinel is byte-identical. The temporary test file is removed.
 
 ## Task 3: Run the first-account read-only compatibility spike
 
@@ -271,9 +182,9 @@ Run from the same repository root:
 codex-headroom exec --ephemeral -s read-only --color never '$graphify. Do not inspect files or call tools. Reply with exactly: HEADROOM_SKILL_LOADED if this skill is available; otherwise reply exactly: HEADROOM_SKILL_UNAVAILABLE.'
 ```
 
-Expected: it returns `HEADROOM_SKILL_LOADED`; before launch, the wrapper creates its private backup, then starts only a loopback proxy and exits after restoring and proving the original Codex configuration. If the wrapper exits nonzero or retains a backup, stop; do not manually rewrite routing settings.
+Expected: it returns `HEADROOM_SKILL_LOADED`; `--no-mcp` keeps Codex configuration untouched while the wrapper starts only a loopback proxy. If it exits nonzero, stop; do not manually rewrite routing settings.
 
-- [ ] **Step 3: Verify routing and wrapper restoration evidence**
+- [ ] **Step 3: Verify routing evidence**
 
 Run after the proxied process exits:
 
@@ -281,7 +192,7 @@ Run after the proxied process exits:
 ss -ltnp '( sport = :8787 )' || true
 ```
 
-Expected: there is no non-loopback Headroom listener. The wrapper's cleanup must already have emitted both configuration checksums after a successful `cmp --silent` proof and removed its private backup. If it exits nonzero or retained its backup, stop; the wrapper—not Task 3—owns restoration and must be corrected before another trial.
+Expected: there is no non-loopback Headroom listener. If the wrapper exits nonzero, stop before another trial.
 
 ## Task 4: Repeat the compatibility spike for the second account
 
@@ -293,7 +204,7 @@ Ask the user to log the terminal Codex CLI into the second account and confirm t
 
 - [ ] **Step 2: Repeat Tasks 3.1 through 3.3 exactly**
 
-Run the same normal baseline, proxied `HEADROOM_SKILL_LOADED` probe, loopback check, and wrapper-owned byte-for-byte restoration proof.
+Run the same normal baseline, proxied `HEADROOM_SKILL_LOADED` probe, and loopback check.
 
 Expected: the second account passes independently. A failure leaves normal `codex` usable and ends the rollout without promotion.
 
@@ -320,7 +231,7 @@ Expected: normal `codex` still resolves independently of the wrapper, no Headroo
 
 - [ ] **Step 2: Report only verified trial evidence**
 
-Report the Headroom version, each account's pass/fail result, whether `config.toml` restoration was byte-identical, listener binding evidence, elapsed times, and any aggregate metric exposed without enabling content logs. Do not infer token savings when no aggregate metric is available.
+Report the Headroom version, each account's pass/fail result, listener binding evidence, elapsed times, and any aggregate metric exposed without enabling content logs. Do not infer token savings when no aggregate metric is available.
 
 - [ ] **Step 3: Do not promote the default command**
 
