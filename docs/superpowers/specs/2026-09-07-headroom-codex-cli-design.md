@@ -32,13 +32,22 @@ codex-headroom ─> Headroom on 127.0.0.1 only ─> OpenAI
 
 Install Headroom in a user-level isolated `uv` tool environment. Prefer its
 supported Codex wrapper/entrypoint over a custom request-rewriting proxy
-configuration. `codex-headroom` invokes that entrypoint for one terminal
-session; it must not alter the environment of a normal `codex` session.
+configuration. `codex-headroom` invokes `headroom wrap codex --code-memory
+none --` for one terminal session; it must not alter the environment of a
+normal `codex` session.
 
 The proxy is on-demand for the first rollout rather than a persistent user
 service. It binds only to loopback, and its lifecycle ends with the wrapper
 session unless the supported Headroom entrypoint requires a short-lived child
 process.
+
+The wrapper owns the configuration-restoration boundary. Before it starts the
+supported Headroom child process, it creates a private, byte-for-byte backup of
+`~/.codex/config.toml`. It does not `exec` Headroom: it retains the direct child
+PID and traps `EXIT`, `HUP`, `INT`, and `TERM`. Cleanup terminates and waits for
+that child when needed, restores the original configuration if it differs,
+proves identity with `cmp` and matching checksums, and only then removes the
+backup. An unprovable restoration retains the backup and exits nonzero.
 
 ## Security and Privacy Defaults
 
@@ -47,6 +56,8 @@ process.
   The current Codex authentication flow must pass through unchanged.
 - Disable Headroom memory, traffic learning, telemetry, and request/response
   content logging for the trial.
+- Pass `--code-memory none` on every wrapped launch so Headroom does not
+  register the default Serena code-memory MCP server.
 - Record only aggregate compatibility and measurement data: command outcome,
   elapsed time, request count, and any Headroom token/compression counters.
 - Do not enable an aggressive token-reduction profile initially. Start with
