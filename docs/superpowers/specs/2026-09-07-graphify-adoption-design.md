@@ -35,7 +35,7 @@ inspection or project verification.
 
 ### Installation and Scope
 
-Install `graphifyy` once in an isolated user-level `uv` tool environment. Its
+Install `graphifyy[sql,watch]` once in an isolated user-level `uv` tool environment. Its
 Codex skill is registered with `graphify codex install --project` from each
 repository that opts in. This keeps Graphify's query-first instruction scoped
 to that repository while allowing the one local CLI installation to serve all
@@ -50,14 +50,18 @@ The team-shared graph artifacts are committed:
 
 - `graphify-out/graph.json`;
 - `graphify-out/GRAPH_REPORT.md`; and
-- `graphify-out/graph.html` when Graphify produces it.
+- `graphify-out/graph.html` when Graphify produces it;
+- `graphify-out/.graphify_labels.json`; and
+- `graphify-out/.graphify_labels.json.sig`.
 
 Local and machine-specific Graphify state is ignored:
 
 - `graphify-out/cache/`;
 - `graphify-out/manifest.json`;
 - `graphify-out/cost.json`; and
-- `graphify-out/needs_update`.
+- `graphify-out/needs_update`;
+- `.graphify_root` and `.graphify_python` path markers; and
+- dated pre-overwrite backup directories.
 
 The committed graph gives a fresh checkout immediately queryable structural
 context. The ignored state remains a rebuildable cache and must never become a
@@ -69,6 +73,11 @@ A Graphify watcher is the only automatic graph updater. It watches the entire
 project path, debounces edit bursts, and regenerates the AST-derived graph when
 code changes. It runs as a per-project `systemd --user` service that starts at
 login and restarts after failure.
+
+The `watch` extra is required for the watcher; SQL extraction is also installed
+because the first project has SQL sources and consumers. A rebuild for a large
+repository can take minutes after its debounce period, so completion is proved
+from the watcher log rather than a fixed short delay.
 
 The machine owns a parameterized user service and a small per-project
 environment file containing only the repository path. Enabling another

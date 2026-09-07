@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Install only with `uv tool install graphifyy`; do not use `pip`.
+- Install with `uv tool install "graphifyy[sql,watch]"`; do not use `pip`.
 - Use a watcher, not Graphify Git hooks.
 - Commit `graphify-out/graph.json`, `GRAPH_REPORT.md`, and `graph.html` when produced.
 - Ignore `graphify-out/cache/`, `manifest.json`, `cost.json`, and `needs_update`.
@@ -42,7 +42,7 @@ Expected: no unrelated changes. If output exists, preserve those paths and exclu
 Run:
 
 ```bash
-uv tool install graphifyy
+uv tool install "graphifyy[sql,watch]"
 uv tool update-shell
 graphify --version
 uv tool list
@@ -171,6 +171,9 @@ graphify-out/cache/
 graphify-out/manifest.json
 graphify-out/cost.json
 graphify-out/needs_update
+graphify-out/.graphify_root
+graphify-out/.graphify_python
+graphify-out/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/
 ```
 
 - [ ] **Step 4: Build and query the initial graph**
@@ -226,15 +229,15 @@ Expected: only this repository has a watcher and Graphify has no hooks.
 Run:
 
 ```bash
-probe=onprem/src/obigo_onprem/.graphify_watcher_probe.py
+probe=onprem/src/obigo_onprem/graphify_watcher_probe.py
 printf 'def graphify_watcher_probe() -> None:\n    pass\n' > "$probe"
-sleep 5
-journalctl --user -u graphify-watch@obigo-data-pipeline.service --since '2 minutes ago' --no-pager
+sleep 5  # debounce only; allow the rebuild itself to finish before inspecting logs
+journalctl --user -u graphify-watch@obigo-data-pipeline.service --since '10 minutes ago' --no-pager
 rm -f "$probe"
-sleep 5
+sleep 5  # debounce only; wait for the removal rebuild to complete
 ```
 
-Expected: logs show rebuilds after creation and removal; Git status does not list the ignored probe. Restart once with `systemctl --user restart graphify-watch@obigo-data-pipeline.service` and confirm it returns active.
+Expected: logs show rebuilds after creation and removal; Git status does not list the removed probe. The probe must be non-hidden and not ignored because Graphify's watcher skips hidden and Git-ignored paths. Restart once with `systemctl --user restart graphify-watch@obigo-data-pipeline.service` and confirm it returns active.
 
 - [ ] **Step 4: Commit watcher changes only when nonempty**
 
