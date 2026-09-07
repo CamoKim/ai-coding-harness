@@ -27,24 +27,29 @@ VS Code Codex extension ──────────────────�
 
 codex ──────────────────────────────────────────────────> existing route
 
-codex-headroom ─> Headroom on 127.0.0.1 only ─> OpenAI
+codex-headroom ─> temporary config snapshot ─> Headroom on 127.0.0.1 only ─> OpenAI
 ```
 
 Install Headroom in a user-level isolated `uv` tool environment. Prefer its
 supported Codex wrapper/entrypoint over a custom request-rewriting proxy
 configuration. `codex-headroom` invokes `headroom wrap codex --no-mcp
---code-memory none --` for one terminal session; `--no-mcp` prevents Headroom
-from registering its retrieve MCP or writing active Codex configuration. It must not alter the environment of a
-normal `codex` session.
+--code-memory none --` for one terminal session. The wrapper snapshots the
+active `config.toml` before launch and restores it byte-for-byte after the
+Headroom child exits. This is necessary because Headroom 0.37.0 still invokes
+legacy Headroom-MCP cleanup even with those two flags. It must not alter the
+environment of a normal `codex` session.
 
 The proxy is on-demand for the first rollout rather than a persistent user
 service. It binds only to loopback, and its lifecycle ends with the wrapper
 session unless the supported Headroom entrypoint requires a short-lived child
 process.
 
-The no-MCP wrapper does not read, write, back up, or restore
-`~/.codex/config.toml`; it directly `exec`s the supported Headroom child so
-normal terminal signal handling applies to that process.
+The wrapper refuses to launch without an existing active `config.toml`. It
+keeps the snapshot in a private temporary directory and restores it after
+normal exit, `SIGHUP`, `SIGINT`, or `SIGTERM`; it then deletes the snapshot.
+It cannot restore state after `SIGKILL` or power loss, so the trial must not
+run while another Codex client, including the VS Code extension, can update
+the same configuration.
 
 ## Security and Privacy Defaults
 
@@ -54,8 +59,9 @@ normal terminal signal handling applies to that process.
 - Disable Headroom memory, traffic learning, telemetry, and request/response
   content logging for the trial.
 - Pass `--no-mcp --code-memory none` on every wrapped launch. `--no-mcp`
-  prevents retrieve-MCP registration; `--code-memory none` disables code
-  memory.
+  prevents retrieve-MCP registration and `--code-memory none` disables code
+  memory. Neither alone guarantees no transient config mutation in the
+  installed Headroom version, which is why the wrapper snapshot is required.
 - Record only aggregate compatibility and measurement data: command outcome,
   elapsed time, request count, and any Headroom token/compression counters.
 - Do not enable an aggressive token-reduction profile initially. Start with

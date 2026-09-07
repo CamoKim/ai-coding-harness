@@ -4,7 +4,7 @@
 
 **Goal:** Add and evaluate an opt-in `codex-headroom` command for terminal Codex CLI without changing normal `codex`, the VS Code extension, repository files, or Codex credentials.
 
-**Architecture:** Install Headroom once in a user-level `uv` tool environment. A small `codex-headroom` wrapper delegates to `headroom wrap codex --no-mcp --code-memory none --`. `--no-mcp` prevents Headroom from registering its retrieve MCP and therefore leaves Codex configuration untouched. The supported command starts a loopback-only proxy for that one Codex session.
+**Architecture:** Install Headroom once in a user-level `uv` tool environment. A small `codex-headroom` wrapper snapshots the active Codex `config.toml`, delegates to `headroom wrap codex --no-mcp --code-memory none --`, then restores its snapshot after the child exits. The supported command starts a loopback-only proxy for that one Codex session.
 
 **Tech Stack:** `uv`, `headroom-ai[proxy]`, Bash, Codex CLI, loopback HTTP.
 
@@ -17,13 +17,14 @@
 - Do not create, copy, print, or replace Codex/OpenAI credentials.
 - Do not enable Headroom memory, learning, telemetry, request/response content logs, or an aggressive token mode in this trial.
 - Use Headroom's documented `headroom wrap codex` integration; do not hand-write an OpenAI request-rewriting proxy configuration.
-- Require `--no-mcp` on every wrapped launch; do not read, modify, or back up `~/.codex/config.toml` in this trial.
+- Require `--no-mcp` on every wrapped launch. The wrapper must restore its pre-launch `config.toml` snapshot on normal exit and catchable termination signals.
+- Before a real probe, fully exit VS Code or disable its Codex extension so no app-server process can concurrently access the same Codex configuration.
 - Treat the active upstream reports of Codex wrapper model and WebSocket failures as a mandatory go/no-go gate, not as a reason to alter normal Codex routing.
 
 ## File Structure
 
 - Create: `/home/obigo/.local/bin/codex-headroom` — opt-in Bash command that delegates to Headroom with MCP registration and code memory disabled.
-- Create temporarily: `/tmp/headroom-codex-wrapper-test.sh` — hermetic wrapper contract test; remove after it passes.
+- Create temporarily: `/tmp/headroom-codex-config-guard-test.sh` and `/tmp/headroom-codex-signal-guard-test.sh` — hermetic wrapper contract tests; remove after they pass.
 
 ## Task 1: Establish Headroom/Codex compatibility prerequisites
 
@@ -89,7 +90,7 @@ Expected: only Harness documentation is committed. The user-level tool installat
 codex-headroom [codex arguments...]
 ```
 
-The command must invoke `headroom wrap codex --no-mcp --code-memory none --` and pass every user argument unchanged. It must not read, write, back up, or restore Codex configuration.
+The command must invoke `headroom wrap codex --no-mcp --code-memory none --` and pass every user argument unchanged. It must restore the exact pre-launch Codex configuration after the Headroom child exits.
 
 - [ ] **Step 1: Write the failing hermetic wrapper test**
 
@@ -105,7 +106,7 @@ none
 --version
 ```
 
-The test must also assert `codex-headroom -- 'read only'` records the literal final argument `read only` without shell splitting. Its complete second recording must be:
+The test must also assert `codex-headroom 'read only'` records the literal final argument `read only` without shell splitting. Its complete second recording must be:
 
 ```text
 wrap
@@ -117,10 +118,12 @@ none
 read only
 ```
 
-The hermetic test may pass `CODEX_HEADROOM_CONFIG` only as a sentinel copied
-configuration. Its fake Headroom must not modify that file; `cmp --silent` must
-prove the wrapper leaves it unchanged. The test must fail if `--no-mcp` is
-missing, reordered after `--code-memory`, or user arguments are split.
+The hermetic test must pass `CODEX_HOME` containing a sentinel configuration.
+Its fake Headroom must overwrite that file; `cmp --silent` must prove the
+wrapper restores the original bytes after child exit. A second test must
+terminate a long-running fake child with `SIGTERM` and prove the same
+restoration. The tests must fail if the flags are missing or reordered, user
+arguments are split, or restoration is removed.
 
 - [ ] **Step 2: Prove the test fails before the wrapper exists**
 
@@ -134,14 +137,11 @@ Expected: failure because `/home/obigo/.local/bin/codex-headroom` does not exist
 
 - [ ] **Step 3: Implement the minimal wrapper**
 
-Write `/home/obigo/.local/bin/codex-headroom`:
+Write `/home/obigo/.local/bin/codex-headroom` so it:
 
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-exec headroom wrap codex --no-mcp --code-memory none -- "$@"
-```
+It must require an existing `${CODEX_HOME:-~/.codex}/config.toml`, snapshot it
+in a private temporary directory before launch, track the Headroom child, and
+restore the snapshot on normal child exit, `SIGHUP`, `SIGINT`, or `SIGTERM`.
 
 Run:
 
@@ -154,11 +154,12 @@ chmod 700 /home/obigo/.local/bin/codex-headroom
 Run:
 
 ```bash
-bash /tmp/headroom-codex-wrapper-test.sh
-rm -f /tmp/headroom-codex-wrapper-test.sh
+bash /tmp/headroom-codex-config-guard-test.sh
+bash /tmp/headroom-codex-signal-guard-test.sh
+rm -f /tmp/headroom-codex-config-guard-test.sh /tmp/headroom-codex-signal-guard-test.sh
 ```
 
-Expected: both argument cases pass, including `--no-mcp --code-memory none` before the argument separator, and the copied configuration sentinel is byte-identical. The temporary test file is removed.
+Expected: both argument cases pass, including `--no-mcp --code-memory none` before the argument separator, and the copied configuration sentinel is byte-identical after both normal and terminated child paths. The temporary test files are removed.
 
 ## Task 3: Run the first-account read-only compatibility spike
 
@@ -182,7 +183,7 @@ Run from the same repository root:
 codex-headroom exec --ephemeral -s read-only --color never '$graphify. Do not inspect files or call tools. Reply with exactly: HEADROOM_SKILL_LOADED if this skill is available; otherwise reply exactly: HEADROOM_SKILL_UNAVAILABLE.'
 ```
 
-Expected: it returns `HEADROOM_SKILL_LOADED`; `--no-mcp` keeps Codex configuration untouched while the wrapper starts only a loopback proxy. If it exits nonzero, stop; do not manually rewrite routing settings.
+Expected: it returns `HEADROOM_SKILL_LOADED`; the wrapper restores the pre-launch Codex configuration after the proxy exits. If it exits nonzero, stop; do not manually rewrite routing settings.
 
 - [ ] **Step 3: Verify routing evidence**
 
