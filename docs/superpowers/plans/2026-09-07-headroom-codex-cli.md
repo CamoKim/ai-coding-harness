@@ -25,7 +25,7 @@
 ## File Structure
 
 - Create: `/home/obigo/.local/bin/codex-headroom` — opt-in Bash command that delegates to Headroom with MCP registration and code memory disabled.
-- Create temporarily: `/tmp/headroom-codex-config-guard-test.sh` and `/tmp/headroom-codex-signal-guard-test.sh` — hermetic wrapper contract tests; remove after they pass.
+- Create temporarily: `/tmp/headroom-codex-config-guard-test.sh`, `/tmp/headroom-codex-signal-guard-test.sh`, and `/tmp/headroom-codex-telemetry-off-test.sh` — hermetic wrapper contract tests; remove after they pass.
 
 ## Task 1: Establish Headroom/Codex compatibility prerequisites
 
@@ -157,7 +157,8 @@ Run:
 ```bash
 bash /tmp/headroom-codex-config-guard-test.sh
 bash /tmp/headroom-codex-signal-guard-test.sh
-rm -f /tmp/headroom-codex-config-guard-test.sh /tmp/headroom-codex-signal-guard-test.sh
+bash /tmp/headroom-codex-telemetry-off-test.sh
+rm -f /tmp/headroom-codex-config-guard-test.sh /tmp/headroom-codex-signal-guard-test.sh /tmp/headroom-codex-telemetry-off-test.sh
 ```
 
 Expected: both argument cases pass, including `--no-mcp --code-memory none` before the argument separator, and the copied configuration sentinel is byte-identical after both normal and terminated child paths. The temporary test files are removed.
