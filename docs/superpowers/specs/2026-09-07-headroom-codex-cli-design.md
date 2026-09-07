@@ -57,7 +57,9 @@ the same configuration.
 - Do not configure a new API key or copy either Codex account's credentials.
   The current Codex authentication flow must pass through unchanged.
 - Disable Headroom memory, traffic learning, telemetry, and request/response
-  content logging for the trial.
+  content logging for the trial. The wrapper exports `HEADROOM_BEACON=off` to
+  the Headroom child because anonymous compression beacons are otherwise
+  enabled by default in Headroom 0.37.0.
 - Pass `--no-mcp --code-memory none` on every wrapped launch. `--no-mcp`
   prevents retrieve-MCP registration and `--code-memory none` disables code
   memory. Neither alone guarantees no transient config mutation in the

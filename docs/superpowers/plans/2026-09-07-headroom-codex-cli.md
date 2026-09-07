@@ -16,6 +16,7 @@
 - Bind Headroom only to `127.0.0.1`; do not use `0.0.0.0` or a LAN address.
 - Do not create, copy, print, or replace Codex/OpenAI credentials.
 - Do not enable Headroom memory, learning, telemetry, request/response content logs, or an aggressive token mode in this trial.
+- Export `HEADROOM_BEACON=off` only to the Headroom child; Headroom 0.37.0's anonymous compression beacon is opt-out and must not inherit its default.
 - Use Headroom's documented `headroom wrap codex` integration; do not hand-write an OpenAI request-rewriting proxy configuration.
 - Require `--no-mcp` on every wrapped launch. The wrapper must restore its pre-launch `config.toml` snapshot on normal exit and catchable termination signals.
 - Before a real probe, fully exit VS Code or disable its Codex extension so no app-server process can concurrently access the same Codex configuration.
