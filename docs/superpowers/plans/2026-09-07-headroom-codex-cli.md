@@ -24,7 +24,7 @@
 
 ## File Structure
 
-- Create: `/home/obigo/.local/bin/codex-headroom` — opt-in Bash command that delegates to Headroom with MCP registration and code memory disabled.
+- Create: `$HOME/.local/bin/codex-headroom` — opt-in Bash command that delegates to Headroom with MCP registration and code memory disabled.
 - Create temporarily: `/tmp/headroom-codex-config-guard-test.sh`, `/tmp/headroom-codex-signal-guard-test.sh`, and `/tmp/headroom-codex-telemetry-off-test.sh` — hermetic wrapper contract tests; remove after they pass.
 
 ## Task 1: Establish Headroom/Codex compatibility prerequisites
@@ -82,8 +82,8 @@ Expected: only Harness documentation is committed. The user-level tool installat
 ## Task 2: Provide an opt-in wrapper and prove its argument boundary
 
 **Files:**
-- Create: `/home/obigo/.local/bin/codex-headroom`
-- Test: `/tmp/headroom-codex-wrapper-test.sh`
+- Create: `$HOME/.local/bin/codex-headroom`
+- Test: `$TMPDIR/headroom-codex-*-test.sh`
 
 **Interfaces:**
 
@@ -95,7 +95,7 @@ The command must invoke `headroom wrap codex --no-mcp --code-memory none --` and
 
 - [ ] **Step 1: Write the failing hermetic wrapper test**
 
-Create `/tmp/headroom-codex-wrapper-test.sh` with a temporary `PATH` containing a fake `headroom` executable that records its arguments. The test must run a copied `codex-headroom --version`, then assert the recording is exactly:
+Create a temporary wrapper test under `${TMPDIR:-/tmp}` with a temporary `PATH` containing a fake `headroom` executable that records its arguments. The test must run a copied `codex-headroom --version`, then assert the recording is exactly:
 
 ```text
 wrap
@@ -134,11 +134,11 @@ Run:
 bash /tmp/headroom-codex-wrapper-test.sh
 ```
 
-Expected: failure because `/home/obigo/.local/bin/codex-headroom` does not exist.
+Expected: failure because `$HOME/.local/bin/codex-headroom` does not exist.
 
 - [ ] **Step 3: Implement the minimal wrapper**
 
-Write `/home/obigo/.local/bin/codex-headroom` so it:
+Write `$HOME/.local/bin/codex-headroom` so it:
 
 It must require an existing `${CODEX_HOME:-~/.codex}/config.toml`, snapshot it
 in a private temporary directory before launch, track the Headroom child, and
@@ -147,7 +147,7 @@ restore the snapshot on normal child exit, `SIGHUP`, `SIGINT`, or `SIGTERM`.
 Run:
 
 ```bash
-chmod 700 /home/obigo/.local/bin/codex-headroom
+chmod 700 "$HOME/.local/bin/codex-headroom"
 ```
 
 - [ ] **Step 4: Verify the wrapper and remove its temporary test**
@@ -226,8 +226,8 @@ command -v codex
 command -v codex-headroom
 headroom --version
 ss -ltnp '( sport = :8787 )' || true
-git -C /home/obigo/바탕화면/ai-coding-harness status --short
-git -C /home/obigo/바탕화면/github/obigo-data-pipeline status --short
+git -C <harness-root> status --short
+git -C <pipeline-root> status --short
 ```
 
 Expected: normal `codex` still resolves independently of the wrapper, no Headroom listener remains after a wrapper session, and neither repository contains Headroom-induced changes.
