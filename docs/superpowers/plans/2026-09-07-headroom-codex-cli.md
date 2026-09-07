@@ -1,0 +1,241 @@
+# Headroom for Codex CLI Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Add and evaluate an opt-in `codex-headroom` command for terminal Codex CLI without changing normal `codex`, the VS Code extension, repository files, or Codex credentials.
+
+**Architecture:** Install Headroom once in a user-level `uv` tool environment. A small `codex-headroom` wrapper delegates to Headroom's supported `wrap codex` command, which starts a loopback-only proxy for that one Codex session. The compatibility trial is performed once per user-selected Codex account and stops on the first routing, authentication, or fidelity failure.
+
+**Tech Stack:** `uv`, `headroom-ai[proxy]`, Bash, Codex CLI, loopback HTTP.
+
+**Spec:** `docs/superpowers/specs/2026-09-07-headroom-codex-cli-design.md`
+
+## Global Constraints
+
+- Do not modify the VS Code extension, existing `codex` executable, repository files, Git hooks, Graphify, or systemd services.
+- Bind Headroom only to `127.0.0.1`; do not use `0.0.0.0` or a LAN address.
+- Do not create, copy, print, or replace Codex/OpenAI credentials.
+- Do not enable Headroom memory, learning, telemetry, request/response content logs, or an aggressive token mode in this trial.
+- Use Headroom's documented `headroom wrap codex` integration; do not hand-write an OpenAI request-rewriting proxy configuration.
+- Preserve and compare the pre-trial `~/.codex/config.toml` checksum. If Headroom changes it and does not restore it, stop and restore the exact backup before further work.
+- Treat the active upstream reports of Codex wrapper model and WebSocket failures as a mandatory go/no-go gate, not as a reason to alter normal Codex routing.
+
+## File Structure
+
+- Create: `/home/obigo/.local/bin/codex-headroom` — opt-in Bash command that delegates to Headroom.
+- Create temporarily: `/tmp/headroom-codex-wrapper-test.sh` — hermetic wrapper contract test; remove after it passes.
+- Create temporarily: `/tmp/headroom-codex-config.toml.before` — byte-for-byte configuration backup during the compatibility trial; remove only after restoration is proven.
+- Modify only through the supported tool during an active wrapper session: `/home/obigo/.codex/config.toml`, if the installed Headroom version uses temporary Codex provider injection. It must match the pre-trial backup after session exit.
+
+## Task 1: Establish Headroom/Codex compatibility prerequisites
+
+**Files:** User-level `uv` tool environment only.
+
+**Interfaces:** Produces a known Headroom version and records whether its installed CLI exposes the supported Codex wrapper.
+
+- [ ] **Step 1: Record the untouched Codex baseline**
+
+Run:
+
+```bash
+command -v codex
+codex --version
+sha256sum /home/obigo/.codex/config.toml
+ss -ltnp '( sport = :8787 )' || true
+```
+
+Expected: record the existing Codex executable/version and configuration digest; port 8787 is either unused or its listener is identified before continuing.
+
+- [ ] **Step 2: Install Headroom in an isolated tool environment**
+
+Run:
+
+```bash
+uv tool install "headroom-ai[proxy]"
+headroom --version
+headroom wrap codex --help
+```
+
+Expected: `headroom` is executable and its help names Codex as a supported `wrap` target. If installation fails, stop; do not alter Codex configuration manually.
+
+- [ ] **Step 3: Verify the safe defaults before any Codex request**
+
+Run:
+
+```bash
+headroom proxy --help
+headroom wrap codex --help
+```
+
+Expected: confirm that the wrapper has no `--learn` argument supplied, the proxy default bind address is loopback, and no persistent installation command has been run. Do not start `headroom proxy` manually in this task.
+
+- [ ] **Step 4: Commit the design and plan only**
+
+Run:
+
+```bash
+git add docs/superpowers/specs/2026-09-07-headroom-codex-cli-design.md docs/superpowers/plans/2026-09-07-headroom-codex-cli.md
+git commit -m "docs: plan Headroom Codex CLI trial"
+```
+
+Expected: only Harness documentation is committed. The user-level tool installation is intentionally outside Git.
+
+## Task 2: Provide an opt-in wrapper and prove its argument boundary
+
+**Files:**
+- Create: `/home/obigo/.local/bin/codex-headroom`
+- Test: `/tmp/headroom-codex-wrapper-test.sh`
+
+**Interfaces:**
+
+```text
+codex-headroom [codex arguments...]
+```
+
+The command must invoke `headroom wrap codex --` and pass every user argument unchanged.
+
+- [ ] **Step 1: Write the failing hermetic wrapper test**
+
+Create `/tmp/headroom-codex-wrapper-test.sh` with a temporary `PATH` containing a fake `headroom` executable that records its arguments. The test must run a copied `codex-headroom -- --version`, then assert the recording is exactly:
+
+```text
+wrap
+codex
+--
+--version
+```
+
+The test must also assert `codex-headroom -- 'read only'` records the literal final argument `read only` without shell splitting.
+
+- [ ] **Step 2: Prove the test fails before the wrapper exists**
+
+Run:
+
+```bash
+bash /tmp/headroom-codex-wrapper-test.sh
+```
+
+Expected: failure because `/home/obigo/.local/bin/codex-headroom` does not exist.
+
+- [ ] **Step 3: Implement the minimal wrapper**
+
+Write `/home/obigo/.local/bin/codex-headroom`:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+exec headroom wrap codex -- "$@"
+```
+
+Run:
+
+```bash
+chmod 700 /home/obigo/.local/bin/codex-headroom
+```
+
+- [ ] **Step 4: Verify the wrapper and remove its temporary test**
+
+Run:
+
+```bash
+bash /tmp/headroom-codex-wrapper-test.sh
+rm -f /tmp/headroom-codex-wrapper-test.sh
+```
+
+Expected: both argument cases pass and no temporary test remains.
+
+## Task 3: Run the first-account read-only compatibility spike
+
+**Files:**
+- Create temporarily: `/tmp/headroom-codex-config.toml.before`
+
+**Interfaces:** Consumes `codex-headroom`; produces a pass/fail record only, not a persistent routing change.
+
+- [ ] **Step 1: Capture the configuration backup and normal baseline**
+
+Run from the Obigo repository root:
+
+```bash
+install -m 600 /home/obigo/.codex/config.toml /tmp/headroom-codex-config.toml.before
+sha256sum /home/obigo/.codex/config.toml /tmp/headroom-codex-config.toml.before
+codex exec --ephemeral -s read-only --color never '$graphify. Do not inspect files or call tools. Reply with exactly: BASELINE_SKILL_LOADED if this skill is available; otherwise reply exactly: BASELINE_SKILL_UNAVAILABLE.'
+```
+
+Expected: both checksums match and the normal Codex invocation returns `BASELINE_SKILL_LOADED`. If the baseline fails, stop; Headroom cannot be evaluated against a broken baseline.
+
+- [ ] **Step 2: Start the opt-in proxied probe**
+
+Run from the same repository root:
+
+```bash
+codex-headroom exec --ephemeral -s read-only --color never '$graphify. Do not inspect files or call tools. Reply with exactly: HEADROOM_SKILL_LOADED if this skill is available; otherwise reply exactly: HEADROOM_SKILL_UNAVAILABLE.'
+```
+
+Expected: it returns `HEADROOM_SKILL_LOADED`; the wrapper starts only a loopback proxy and then exits with Codex.
+
+- [ ] **Step 3: Verify routing, privacy, and restoration**
+
+Run after the proxied process exits:
+
+```bash
+ss -ltnp '( sport = :8787 )' || true
+sha256sum /home/obigo/.codex/config.toml /tmp/headroom-codex-config.toml.before
+cmp --silent /home/obigo/.codex/config.toml /tmp/headroom-codex-config.toml.before
+```
+
+Expected: there is no non-loopback Headroom listener; the two configuration files are identical. If `cmp` fails, stop the Headroom process, restore the backup with `install -m 600 /tmp/headroom-codex-config.toml.before /home/obigo/.codex/config.toml`, then verify the checksum again.
+
+- [ ] **Step 4: Remove the backup only after restoration passes**
+
+Run:
+
+```bash
+rm -f /tmp/headroom-codex-config.toml.before
+```
+
+Expected: no temporary Codex configuration backup remains after a successful identical-file comparison.
+
+## Task 4: Repeat the compatibility spike for the second account
+
+**Files:** Same temporary backup path as Task 3, recreated for this task.
+
+**Interfaces:** Requires the user to switch the terminal Codex session to the second account before the probe.
+
+- [ ] **Step 1: Pause for an explicit account-switch confirmation**
+
+Ask the user to log the terminal Codex CLI into the second account and confirm that normal `codex --version` succeeds. Do not inspect account identities, credentials, or tokens.
+
+- [ ] **Step 2: Repeat Tasks 3.1 through 3.4 exactly**
+
+Run the same normal baseline, proxied `HEADROOM_SKILL_LOADED` probe, loopback check, byte-for-byte configuration restoration check, and backup removal.
+
+Expected: the second account passes independently. A failure leaves normal `codex` usable and ends the rollout without promotion.
+
+## Task 5: Report evidence and keep the route opt-in
+
+**Files:** Modify: `docs/superpowers/specs/2026-09-07-headroom-codex-cli-design.md` only if measured results require an explicit factual addendum.
+
+**Interfaces:** Keeps `codex` and the VS Code extension unchanged; `codex-headroom` remains the only Headroom entrypoint.
+
+- [ ] **Step 1: Verify the final boundaries**
+
+Run:
+
+```bash
+command -v codex
+command -v codex-headroom
+headroom --version
+ss -ltnp '( sport = :8787 )' || true
+git -C /home/obigo/바탕화면/ai-coding-harness status --short
+git -C /home/obigo/바탕화면/github/obigo-data-pipeline status --short
+```
+
+Expected: normal `codex` still resolves independently of the wrapper, no Headroom listener remains after a wrapper session, and neither repository contains Headroom-induced changes.
+
+- [ ] **Step 2: Report only verified trial evidence**
+
+Report the Headroom version, each account's pass/fail result, whether `config.toml` restoration was byte-identical, listener binding evidence, elapsed times, and any aggregate metric exposed without enabling content logs. Do not infer token savings when no aggregate metric is available.
+
+- [ ] **Step 3: Do not promote the default command**
+
+Leave `codex` and the VS Code extension unchanged. A future request may separately evaluate enabling local-only aggregate telemetry or promoting `codex-headroom` to a default alias after repeated successful real tasks.
