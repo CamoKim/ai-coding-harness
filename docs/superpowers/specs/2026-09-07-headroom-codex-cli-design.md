@@ -46,8 +46,10 @@ supported Headroom child process, it creates a private, byte-for-byte backup of
 `~/.codex/config.toml`. It does not `exec` Headroom: it retains the direct child
 PID and traps `EXIT`, `HUP`, `INT`, and `TERM`. It ignores catchable termination
 signals only while backgrounding Headroom and capturing `$!`, so no signal can
-run cleanup before the direct-child PID is known; it then installs the normal
-signal handlers. Cleanup disables recursive `EXIT` handling and ignores
+run cleanup before the direct-child PID is known. The background subshell resets
+those signal dispositions before it `exec`s Headroom, so the direct child can
+receive termination during cleanup; the wrapper then installs the normal signal
+handlers. Cleanup disables recursive `EXIT` handling and ignores
 `HUP`/`INT`/`TERM` while it terminates and waits for that child, restores the
 original configuration if it differs, proves identity with `cmp` and matching
 checksums, and only then removes the backup. An unprovable restoration retains

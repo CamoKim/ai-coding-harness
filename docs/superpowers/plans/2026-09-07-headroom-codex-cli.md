@@ -203,7 +203,7 @@ cleanup() {
 trap cleanup EXIT
 # Ignore catchable termination signals until the direct-child PID is captured.
 trap '' HUP INT TERM
-headroom wrap codex --code-memory none -- "$@" &
+(trap - HUP INT TERM; exec headroom wrap codex --code-memory none -- "$@") &
 child_pid=$!
 trap 'exit 129' HUP
 trap 'exit 130' INT
