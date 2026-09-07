@@ -114,3 +114,26 @@ Graphify reduces unnecessary repository discovery. Headroom may additionally
 reduce or stabilize the context sent for long terminal Codex sessions. It does
 not replace Graphify, automatically commit generated graph artifacts, or
 perform document semantic extraction.
+
+## Verified trial record — 2026-09-07
+
+- Headroom version: `0.37.0`; Codex CLI version: `0.153.4`.
+- With the VS Code Codex extension closed, the normal read-only Graphify probe
+  and the telemetry-disabled Headroom probe both returned their expected skill
+  markers for the initial terminal login. The user then switched the terminal
+  to the second account; the same two probes again returned their expected
+  markers.
+- In all successful Headroom probes, the active `config.toml` SHA-256 was
+  `c09c83710c32b1df2952b881c785ca71103d3df95cae65592f7ea9fdbb69269b`
+  before and after the proxied process, and no listener remained on port 8787
+  after exit.
+- Normal `codex` and opt-in `codex-headroom` remain distinct executables. Both
+  the harness trial worktree and the Obigo pipeline repository were clean at
+  the final boundary check.
+- An initial first-account probe exposed Headroom's default anonymous beacon.
+  The wrapper was corrected to export `HEADROOM_BEACON=off`; both final
+  account probes ran after that correction and did not display the beacon
+  notice.
+- Headroom printed that PyTorch was unavailable. The probes still completed,
+  but these compatibility checks do not establish token savings or assess the
+  impact of that optional-model warning.
