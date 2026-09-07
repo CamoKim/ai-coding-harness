@@ -130,6 +130,15 @@ backup but rejects backup-to-configuration restoration), assert the wrapper
 exits nonzero, and assert the controlled private backup path remains. This
 failure case must not delete the retained backup.
 
+Add a second-signal cleanup case with deterministic synchronization: after the
+first `TERM` has entered cleanup and the fake child is being stopped or the
+copied configuration is being restored, deliver a second `HUP`, `INT`, or
+`TERM` to the wrapper. Assert cleanup still completes: the direct child is
+stopped, `cmp --silent` proves the copied configuration byte-identical to its
+pre-launch copy, and the success-case backup is deleted only after the `cmp`
+and checksum proof. The test must fail if the second signal aborts cleanup or
+causes backup deletion before the proof.
+
 - [ ] **Step 2: Prove the test fails before the wrapper exists**
 
 Run:
