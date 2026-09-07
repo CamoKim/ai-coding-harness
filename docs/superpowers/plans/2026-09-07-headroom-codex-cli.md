@@ -96,7 +96,7 @@ The command must invoke `headroom wrap codex --code-memory none --` and pass eve
 
 - [ ] **Step 1: Write the failing hermetic wrapper test**
 
-Create `/tmp/headroom-codex-wrapper-test.sh` with a temporary `PATH` containing a fake `headroom` executable that records its arguments. The test must run a copied `codex-headroom -- --version`, then assert the recording is exactly:
+Create `/tmp/headroom-codex-wrapper-test.sh` with a temporary `PATH` containing a fake `headroom` executable that records its arguments. The test must run a copied `codex-headroom --version`, then assert the recording is exactly:
 
 ```text
 wrap
