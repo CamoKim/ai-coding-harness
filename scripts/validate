@@ -79,6 +79,7 @@ reproduction/graphify-watch/windows.ps1
 tests/reproduction/test_graphify_watch_linux.sh
 tests/reproduction/test_graphify_watch_macos.sh
 tests/reproduction/test_graphify_watch_windows.ps1
+tests/reproduction/test_validate_graphify_watch.sh
 templates/global/AGENTS.md
 templates/repository/AGENTS.md
 templates/subsystem/AGENTS.md
@@ -110,6 +111,7 @@ done
 shell_test_scripts='
 tests/reproduction/test_graphify_watch_linux.sh
 tests/reproduction/test_graphify_watch_macos.sh
+tests/reproduction/test_validate_graphify_watch.sh
 '
 
 for path in $shell_test_scripts; do
