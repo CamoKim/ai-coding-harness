@@ -46,17 +46,25 @@ After core doctor output is satisfactory, use the [Portable Adoption Kit](portab
 
 Graphify and its watcher are deliberately separate from the core baseline. Add them only to a repository with a proven broad-exploration need. Its project-specific watcher setup is not part of core bootstrap and must not be inferred from a repository path.
 
-### Linux Watcher Adapter
+### Project-Scoped Graphify Watchers
 
-The Linux adapter is available, but is deliberately not run by bootstrap or doctor. `enable` is stateful: it writes one named user-service configuration and starts that named service. Use it only after Graphify is installed and only with an explicit Git repository path:
+The watcher adapters are deliberately not run by bootstrap or doctor. `enable` is stateful: it writes one named platform-service configuration and starts or schedules that named watcher. Use one only after Graphify is installed and only with an explicit Git repository path:
 
 ```text
-./reproduction/graphify-watch/linux.sh enable <project-id> <repository-path>
-./reproduction/graphify-watch/linux.sh status <project-id>
-./reproduction/graphify-watch/linux.sh remove <project-id>
+Linux:   ./reproduction/graphify-watch/linux.sh enable <project-id> <repository-path>
+         ./reproduction/graphify-watch/linux.sh status <project-id>
+         ./reproduction/graphify-watch/linux.sh remove <project-id>
+
+macOS:   ./reproduction/graphify-watch/macos.sh enable <project-id> <repository-path>
+         ./reproduction/graphify-watch/macos.sh status <project-id>
+         ./reproduction/graphify-watch/macos.sh remove <project-id>
+
+Windows: .\reproduction\graphify-watch\windows.ps1 enable <project-id> <repository-path>
+         .\reproduction\graphify-watch\windows.ps1 status <project-id>
+         .\reproduction\graphify-watch\windows.ps1 remove <project-id>
 ```
 
-`project-id` must contain only letters, numbers, `_`, and `-`; it identifies exactly one `graphify-watch@<project-id>.service` unit. `remove` disables that unit and removes only its matching project configuration. It never discovers, changes, or removes other watcher registrations. The first real `enable` is a human acceptance checkpoint because it registers a persistent user service for a chosen repository.
+`project-id` must contain only letters, numbers, `_`, and `-`. It identifies exactly one platform object: `graphify-watch@<project-id>.service` (Linux), `com.graphify.watch.<project-id>.plist` (macOS), or `Graphify-Watch-<project-id>` (Windows). `remove` affects only that named object and its matching project configuration; it never discovers, changes, or removes other watcher registrations. The first real `enable` is a human acceptance checkpoint because it registers a persistent service or scheduled task for a chosen repository.
 
 ## Fresh-Machine Acceptance
 

@@ -74,6 +74,11 @@ reproduction/doctor.ps1
 reproduction/lib/common.sh
 reproduction/lib/common.ps1
 reproduction/graphify-watch/linux.sh
+reproduction/graphify-watch/macos.sh
+reproduction/graphify-watch/windows.ps1
+tests/reproduction/test_graphify_watch_linux.sh
+tests/reproduction/test_graphify_watch_macos.sh
+tests/reproduction/test_graphify_watch_windows.ps1
 templates/global/AGENTS.md
 templates/repository/AGENTS.md
 templates/subsystem/AGENTS.md
@@ -90,10 +95,24 @@ done
 shell_scripts='
 scripts/validate
 reproduction/graphify-watch/linux.sh
+reproduction/graphify-watch/macos.sh
 '
 
 for path in $shell_scripts; do
     require_executable "$path"
+    if sh -n "$HARNESS_ROOT/$path"; then
+        pass "shell syntax: $path"
+    else
+        fail "invalid shell syntax: $path"
+    fi
+done
+
+shell_test_scripts='
+tests/reproduction/test_graphify_watch_linux.sh
+tests/reproduction/test_graphify_watch_macos.sh
+'
+
+for path in $shell_test_scripts; do
     if sh -n "$HARNESS_ROOT/$path"; then
         pass "shell syntax: $path"
     else
