@@ -65,10 +65,21 @@ docs/daily-usage.md
 docs/returning-to-the-harness.md
 docs/configuration.md
 docs/verification-contract.md
+docs/reproduce-environment.md
+reproduction/manifest.env
+reproduction/bootstrap.sh
+reproduction/doctor.sh
+reproduction/bootstrap.ps1
+reproduction/doctor.ps1
+reproduction/lib/common.sh
+reproduction/lib/common.ps1
 templates/global/AGENTS.md
 templates/repository/AGENTS.md
 templates/subsystem/AGENTS.md
 scripts/validate
+reproduction/bootstrap.sh
+reproduction/doctor.sh
+reproduction/lib/common.sh
 '
 
 for path in $required_files; do
@@ -145,6 +156,7 @@ README.md
 docs
 templates
 scripts
+reproduction
 '
 
 absolute_path_pattern='/ho''me/[^/[:space:]]+|/Us''ers/[^/[:space:]]+|[A-Za-z]:\\Us''ers\\'

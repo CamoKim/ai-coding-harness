@@ -31,6 +31,8 @@ Start by validating this source repository:
 
 For a complete manual adoption path, start with the [Portable Adoption Kit](docs/portable-adoption-kit.md). It preserves existing project instructions and deliberately leaves accounts, credentials, plugins, local trust, and optional project tools under their owners' control.
 
+For a fresh Linux, macOS, or Windows workstation, use [the environment reproduction guide](docs/reproduce-environment.md) before adopting any target repository.
+
 ## Daily use
 
 Most work starts with a natural-language request, such as “Add pagination to the orders endpoint and verify affected consumers.” Superpowers methodology is normally applied by Codex when it is useful; it is not another Harness command to memorize. Use [the daily usage guide](docs/daily-usage.md) for `/goal`, subagents, worktrees, review, `codex exec`, hooks, project verification, and optional OMX.
