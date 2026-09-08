@@ -31,10 +31,13 @@ Start by validating this source repository:
 
 Most work starts with a natural-language request, such as “Add pagination to the orders endpoint and verify affected consumers.” Superpowers methodology is normally applied by Codex when it is useful; it is not another Harness command to memorize. Use [the daily usage guide](docs/daily-usage.md) for `/goal`, subagents, worktrees, review, `codex exec`, hooks, project verification, and optional OMX.
 
+Returning after a pause or on a new machine? Start with [the re-entry guide](docs/returning-to-the-harness.md) before changing local configuration or copying templates.
+
 ## Read deeper
 
 - [Adoption workflow](docs/adoption.md)
 - [Daily usage guide](docs/daily-usage.md)
+- [Returning to the Harness](docs/returning-to-the-harness.md)
 - [Reference environment and deliberate boundaries](docs/reference-environment.md)
 - [Architecture and ownership boundary](docs/architecture.md)
 - [Verification contract](docs/verification-contract.md)
