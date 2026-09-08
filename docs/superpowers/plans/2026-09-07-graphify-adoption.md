@@ -201,7 +201,7 @@ Expected: cache, manifest, cost, and marker files are not staged.
 
 **Files:** Create `<user-config>/graphify/projects/obigo-data-pipeline.env` through the helper.
 
-- [ ] **Step 1: Enable and inspect the watcher**
+- [x] **Step 1: Enable and inspect the watcher**
 
 Run:
 
@@ -212,7 +212,7 @@ graphify-project status obigo-data-pipeline
 
 Expected: service status is `active (running)`; the environment file mode is `0600`.
 
-- [ ] **Step 2: Verify isolation and absence of hooks**
+- [x] **Step 2: Verify isolation and absence of hooks**
 
 Run:
 
@@ -239,7 +239,7 @@ sleep 5  # debounce only; wait for the removal rebuild to complete
 
 Expected: logs show rebuilds after creation and removal; Git status does not list the removed probe. The probe must be non-hidden and not ignored because Graphify's watcher skips hidden and Git-ignored paths. Restart once with `systemctl --user restart graphify-watch@obigo-data-pipeline.service` and confirm it returns active.
 
-- [ ] **Step 4: Commit watcher changes only when nonempty**
+- [x] **Step 4: Commit watcher changes only when nonempty**
 
 Stage only changed shared graph artifacts. If `git diff --cached --quiet` is false, commit `chore: refresh Graphify repository graph`; otherwise create no commit.
 
@@ -250,17 +250,17 @@ Stage only changed shared graph artifacts. If `git diff --cached --quiet` is fal
 - Retire: `<retired-graph-repository>`.
 - Delete in Harness: the 2026-09-01 bespoke graph design and plan.
 
-- [ ] **Step 1: Reconfirm exact targets and obtain deletion approval**
+- [x] **Step 1: Reconfirm exact targets and obtain deletion approval**
 
 Run Git status in both repositories and list only the declared targets with `find`. Show those paths to the user. Do not delete if either repository has unrelated changes.
 
-- [ ] **Step 2: Delete only confirmed Obigo paths**
+- [x] **Step 2: Delete only confirmed Obigo paths**
 
 After approval, remove only listed paths, run `test -f road-platform/sql/011_link_graph.sql`, stage with `git add -u`, run `git diff --cached --check`, and commit `refactor: retire bespoke repository graph`.
 
 Expected: the domain SQL file remains; staging contains only approved deletions.
 
-- [ ] **Step 3: Archive the standalone graph repository**
+- [x] **Step 3: Archive the standalone graph repository**
 
 After approval, run:
 
@@ -270,7 +270,7 @@ mv <retired-graph-repository> <retired-graph-repository>.retired-2026-09-07
 
 Expected: Graphify has no active sibling dependency; reverse the move to recover it. Retain the archive until one ordinary Graphify-supported task completes.
 
-- [ ] **Step 4: Delete obsolete Harness documents**
+- [x] **Step 4: Delete obsolete Harness documents**
 
 After approval, delete the 2026-09-01 bespoke graph spec and plan, stage with `git add -u docs/superpowers`, run `git diff --cached --check`, and commit `docs: retire bespoke repository graph plan`.
 
@@ -278,13 +278,13 @@ Expected: this Graphify design and plan remain.
 
 ## Task 6: Final verification and future-project setup
 
-- [ ] **Step 1: Verify active Graphify state**
+- [x] **Step 1: Verify active Graphify state**
 
 Run `graphify --version`, `graphify-project status obigo-data-pipeline`, `git ls-files graphify-out/graph.json graphify-out/GRAPH_REPORT.md graphify-out/graph.html`, and `git check-ignore -v graphify-out/cache/probe graphify-out/manifest.json graphify-out/cost.json graphify-out/needs_update` from Obigo.
 
 Expected: Graphify and watcher are active, shared artifacts are tracked, and all local-state probes are ignored.
 
-- [ ] **Step 2: Verify obsolete active paths are gone**
+- [x] **Step 2: Verify obsolete active paths are gone**
 
 Run `test ! -e scripts/repository-graph`, `test ! -e .codex/repo-graph.yml`, and `test ! -e <retired-graph-repository>`.
 
@@ -295,3 +295,15 @@ Expected: Graphify is the sole active graph route.
 Run `graphify codex install --project` in its root; create the graph with `$graphify .` in a new Codex thread; then run `graphify-project enable <project-id> "$(pwd -P)"`.
 
 Expected: each future repository gets its own Codex guidance and watcher without altering Obigo configuration.
+
+## Current Acceptance Checkpoints (2026-09-08)
+
+The following current-state evidence was verified without changing a target repository:
+
+- `graphifyy` 0.9.55 is installed as an isolated `uv` tool;
+- `obigo-data-pipeline` has the Codex Graphify skill, tracked `graph.json`, `GRAPH_REPORT.md`, and `graph.html` artifacts, and no `needs_update` marker;
+- its sole `graphify-watch@obigo-data-pipeline.service` instance is enabled and active, uses a mode-`0600` project environment file, and has no Graphify Git hooks or global `core.hooksPath` override;
+- its bespoke graph wrapper/configuration paths are absent, while `road-platform/sql/011_link_graph.sql` remains; and
+- `local-repository-graph` is retained only as `local-repository-graph.retired-2026-09-07`.
+
+The remaining unchecked steps require explicit human authorization or a native environment: the controlled watcher probe changes a source file and graph artifacts, and future-project setup requires selecting a repository. The cross-platform Harness plan separately records the macOS and Windows native acceptance tests.
