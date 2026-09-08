@@ -125,13 +125,11 @@ for path in $shell_test_scripts; do
 done
 
 require_heading templates/repository/AGENTS.md '## Repository Map'
-require_heading templates/repository/AGENTS.md '## Shared Dependencies'
 require_heading templates/repository/AGENTS.md '## Subsystem Routing'
 require_heading templates/repository/AGENTS.md '## Common Compatibility Contracts'
 require_heading templates/repository/AGENTS.md '## Verification Entry Point'
 require_heading templates/repository/AGENTS.md '## Verification Routing'
 require_heading templates/repository/AGENTS.md '## Generated, Runtime, and Secret Data'
-require_heading templates/repository/AGENTS.md '## Cross-subsystem Impact'
 require_heading templates/subsystem/AGENTS.md '## Purpose and Scope'
 require_heading templates/subsystem/AGENTS.md '## Execution Path'
 require_heading templates/subsystem/AGENTS.md '## Architecture Constraints'
@@ -156,8 +154,9 @@ require_heading docs/configuration.md '## Local Configuration'
 require_heading docs/verification-contract.md '## Change-aware Routing'
 require_heading docs/verification-contract.md '## Exit Codes'
 require_heading docs/verification-contract.md '## Mutation Boundary'
-require_text README.md 'Native Codex owns its native capabilities'
-require_text README.md 'Superpowers supplies generic engineering methodology'
+require_text README.md 'architecture guide'
+require_text docs/architecture.md '| Native Codex |'
+require_text docs/architecture.md '| Superpowers |'
 require_text templates/global/AGENTS.md 'Correctness comes first'
 require_text templates/global/AGENTS.md 'smallest workflow that can safely complete the task'
 require_text templates/global/AGENTS.md 'Do not repeat a successful check unless'
@@ -174,12 +173,6 @@ require_text docs/daily-usage.md 'codex exec'
 require_text docs/daily-usage.md 'native hooks'
 require_text docs/daily-usage.md './scripts/verify <scope> fast'
 require_text docs/daily-usage.md 'Use OMX only when'
-
-if sh tests/reproduction/test_documentation_contracts.sh; then
-    pass 'documentation boundary contract'
-else
-    fail 'documentation boundary contract failed'
-fi
 
 text_paths='
 VERSION
@@ -223,6 +216,42 @@ if grep -F -x -q -- "## $version" "$HARNESS_ROOT/CHANGELOG.md"; then
     pass "current version has changelog entry: $version"
 else
     fail "missing changelog entry for current version: $version"
+fi
+
+if [ "${HARNESS_VALIDATION_CHILD:-0}" != 1 ]; then
+    behavior_tests='
+tests/reproduction/test_manifest.sh
+tests/reproduction/test_bash_core.sh
+tests/reproduction/test_graphify_watch_linux.sh
+tests/reproduction/test_graphify_watch_macos.sh
+tests/reproduction/test_validate_graphify_watch.sh
+tests/reproduction/test_documentation_contracts.sh
+'
+    for path in $behavior_tests; do
+        if [ "$path" = tests/reproduction/test_validate_graphify_watch.sh ] && [ "${HARNESS_TEST_VALIDATE_SKIP_SELF:-0}" = 1 ]; then
+            pass "behavior test skipped by recursion guard: $path"
+        elif HARNESS_VALIDATION_CHILD=1 sh "$HARNESS_ROOT/$path"; then
+            pass "behavior test: $path"
+        else
+            fail "behavior test failed: $path"
+        fi
+    done
+
+    powershell_tests='
+tests/reproduction/test_powershell_core.ps1
+tests/reproduction/test_graphify_watch_windows.ps1
+'
+    if command -v pwsh >/dev/null 2>&1; then
+        for path in $powershell_tests; do
+            if pwsh -NoProfile -File "$HARNESS_ROOT/$path"; then
+                pass "behavior test: $path"
+            else
+                fail "behavior test failed: $path"
+            fi
+        done
+    else
+        pass 'PowerShell behavior tests skipped: pwsh is unavailable'
+    fi
 fi
 
 if [ "$failures" -ne 0 ]; then

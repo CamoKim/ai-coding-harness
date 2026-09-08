@@ -1,6 +1,6 @@
 # Repository Guide
 
-Preserve useful existing repository instructions, then add or merge these sections with verified repository facts. Do not replace existing guidance blindly. Remove unused prompts and keep detailed subsystem instructions in the closest subsystem `AGENTS.md`.
+Preserve useful existing repository instructions, then add or merge these sections with verified repository facts. Do not replace existing guidance blindly. Delete unused optional sections and bracketed prompts, and keep detailed subsystem instructions in the closest subsystem `AGENTS.md`.
 
 This file owns repository-specific facts, constraints, compatibility contracts, and verification routing. Generic planning, TDD, debugging, review, and verification methodology belong to Superpowers and Native Codex, not here.
 
@@ -8,11 +8,6 @@ This file owns repository-specific facts, constraints, compatibility contracts, 
 
 - `[path]`: [responsibility]
 - `[path]`: [responsibility]
-
-## Shared Dependencies
-
-- [Identify libraries, schemas, services, or tooling shared by multiple subsystems.]
-- [State which consumers require verification when a shared dependency changes.]
 
 ## Subsystem Routing
 
@@ -40,11 +35,11 @@ If this repository provides a stable verification entry point, record it here. I
 
 Maintain one rule for each path group, shared dependency, or contract source that needs distinct verification.
 
-| Changed path or contract source | Affected scopes | Default level | Escalation | Runtime evidence and approval |
+| Changed path, shared dependency, or contract source | Affected direct and transitive consumer scopes | Default level | Escalation | Runtime evidence and approval |
 | --- | --- | --- | --- | --- |
 | `[path or contract]` | `[scope, consumer scope]` | `fast` | [cross-scope or `full` condition] | `none`, or `[project-owned isolated/stateful action and approval condition]` |
 
-- Shared dependencies: [map each shared component to its declared direct and transitive consumer scopes.]
+- Shared dependencies and contracts: [include each source and all affected direct and transitive consumers in the table.]
 - Full verification: [state only changes for which the project has meaningful required `full` evidence; record unsupported levels honestly.]
 - Runtime evidence: [identify externally observable integration or runtime-path changes and the project-owned evidence action; label stateful actions and required approval.]
 - [Routing selects existing project-owned commands. It does not add changed-file inference to `scripts/verify` or authorize stateful operations.]
@@ -55,8 +50,3 @@ Maintain one rule for each path group, shared dependency, or contract source tha
 - Generated artifacts: [state how they are generated and whether they are committed]
 - Runtime data: [identify directories that verification must not mutate]
 - Secrets: [identify example files or environment-variable contracts; never record values]
-
-## Cross-subsystem Impact
-
-- [Describe how to identify and verify affected consumers.]
-- [List changes that require more than one subsystem verifier.]

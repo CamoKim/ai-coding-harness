@@ -8,6 +8,7 @@ unit_root=${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user
 fail() { printf 'FAIL: %s\n' "$1" >&2; exit 1; }
 valid_id() { printf '%s' "$1" | grep -E -q '^[A-Za-z0-9][A-Za-z0-9_-]*$'; }
 service_name() { printf 'graphify-watch@%s.service' "$1"; }
+unit_escape() { printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/%/%%/g'; }
 resolve_graphify() {
     raw=$(command -v graphify 2>/dev/null || :)
     [ -n "$raw" ] && [ -f "$raw" ] && [ -x "$raw" ] || return 1
@@ -19,21 +20,28 @@ require_id() {
     valid_id "$1" || fail 'project identifier must contain only letters, numbers, underscores, or hyphens'
 }
 
+resolve_repository() {
+    repo=$1
+    [ -d "$repo" ] || return 1
+    git -C "$repo" rev-parse --is-inside-work-tree 2>/dev/null | grep -F -x -q true || return 1
+    CDPATH= cd -- "$repo" && pwd -P
+}
+
 enable() {
     id=$1
     repo=$2
     require_id "$id"
-    [ -d "$repo/.git" ] || fail 'repository is not a Git repository'
+    repo=$(resolve_repository "$repo") || fail 'repository is not a Git repository'
     graphify=$(resolve_graphify) || fail 'graphify is not available as an executable'
-    repo=$(CDPATH= cd -- "$repo" && pwd -P)
     mkdir -p "$config_root/projects" "$unit_root"
-    printf 'GRAPHIFY_PROJECT=%s\n' "$repo" > "$config_root/projects/$id.env"
+    env_file=$config_root/projects/$id.env
+    printf 'GRAPHIFY_PROJECT=%s\n' "$repo" > "$env_file"
     cat > "$unit_root/graphify-watch@.service" <<EOF
 [Unit]
 Description=Graphify watcher for %i
 
 [Service]
-EnvironmentFile=%h/.config/graphify-watch/projects/%i.env
+EnvironmentFile="$(unit_escape "$config_root")/projects/%i.env"
 ExecStart="$graphify" watch \${GRAPHIFY_PROJECT}
 Restart=on-failure
 EOF

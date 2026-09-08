@@ -2,10 +2,9 @@
 
 ## Purpose
 
-This document records the intended operating environment for this Harness: why
-it exists, which responsibilities each layer owns, and what is deliberately
-left outside it. It is a reusable reference, not a runtime installer or a
-claim that every machine is configured identically.
+This document records the intended operating environment and what remains
+machine-local. The canonical ownership boundary is in
+[the architecture guide](architecture.md).
 
 The environment is designed to improve outcomes over time by preserving
 durable project facts, choosing evidence proportionate to risk, and promoting
@@ -15,18 +14,10 @@ system around Codex.
 
 ## Baseline Stack
 
-| Layer | Responsibility | Portable artifact in this repository |
-| --- | --- | --- |
-| Native Codex CLI | interaction, reasoning, tool use, approvals, sessions, and native capabilities | none; its account, credentials, trust, and local settings remain user-owned |
-| Superpowers | generic engineering methodology, such as planning, debugging, TDD, review, and verification discipline | none; it is a separately installed Codex plugin |
-| This Harness | durable engineering rules, project and subsystem context, and a project-owned verification contract | `AGENTS.md` templates, documentation, and `./scripts/validate` |
-| Each adopted repository | architecture facts, consumers, compatibility boundaries, build/test commands, and verification routing | that repository's `AGENTS.md`, code, documentation, and verifier |
-| Graphify (optional) | repository-structure extraction and queries for repositories where broad exploration is useful | a project-scoped skill and committed graph artifacts in the opted-in repository |
-
-The normal interface remains a natural-language request to Codex. There is no
-Harness command, wrapper, or custom agent loop to remember. Codex reads the
-nearest applicable instructions, uses native capabilities when they help, and
-the repository supplies the evidence path for the change.
+The baseline combines Native Codex, the separately installed Superpowers
+plugin, this Harness's templates, and each adopted repository's own facts and
+verification. Graphify remains optional and project-scoped. See
+[daily usage](daily-usage.md) for tool selection.
 
 ## Adoption Topology
 
@@ -86,12 +77,8 @@ observed benefit beyond the baseline.
   with the existing instruction and methodology layers, so it needs a concrete
   gap before adoption.
 - **Runtime installers, self-healing doctor tooling, and custom orchestration
-  runtimes** are excluded. They would manage user-owned configuration or
-  duplicate native Codex, Superpowers, Git, and project tooling. Portable
-  reproduction utilities are included only as explicit, user-invoked
-  environment-reconstruction aids: their read-only checks report prerequisites,
-  and any `--apply` installation step remains a deliberate user action that
-  invokes an official installation route.
+  runtimes** are excluded. Portable reproduction utilities are explicit,
+  user-invoked, read-only prerequisite checks.
 
 An excluded tool may be reconsidered later, but only with a specific problem,
 a bounded trial, and evidence that it improves outcomes without weakening

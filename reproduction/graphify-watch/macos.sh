@@ -23,15 +23,21 @@ require_id() {
     valid_id "$1" || fail 'project identifier must contain only letters, numbers, underscores, or hyphens'
 }
 
+resolve_repository() {
+    repo=$1
+    [ -d "$repo" ] || return 1
+    git -C "$repo" rev-parse --is-inside-work-tree 2>/dev/null | grep -F -x -q true || return 1
+    CDPATH= cd -- "$repo" && pwd -P
+}
+
 user_domain() { printf 'gui/%s' "$(id -u)"; }
 
 enable() {
     id=$1
     repo=$2
     require_id "$id"
-    [ -d "$repo/.git" ] || fail 'repository is not a Git repository'
+    repo=$(resolve_repository "$repo") || fail 'repository is not a Git repository'
     graphify=$(resolve_graphify) || fail 'graphify is not available as an executable'
-    repo=$(CDPATH= cd -- "$repo" && pwd -P)
     plist=$(plist_path "$id")
     mkdir -p "$config_root/projects" "$agent_root"
     printf 'GRAPHIFY_PROJECT=%s\n' "$repo" > "$config_root/projects/$id.env"

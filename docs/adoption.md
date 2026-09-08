@@ -10,6 +10,14 @@ This Harness does not provide a runtime manager, self-healing doctor, or automat
 4. Add `<subsystem>/AGENTS.md` from `templates/subsystem/AGENTS.md` only when that subtree needs different instructions from its parent—for example, a separate service, schema source, generated-code boundary, or stateful operational area.
 5. Run the project’s own checks after editing its instructions. The Harness source itself is checked with `./scripts/validate`.
 
+Before and after a manual global merge, inspect the difference without changing either file:
+
+```sh
+diff -u templates/global/AGENTS.md ~/.codex/AGENTS.md
+```
+
+An empty result means the files match. A nonempty result is review input; preserve intentional user-only guidance rather than overwriting it.
+
 The instruction hierarchy is global guidance, then repository guidance, then the nearest subsystem guidance. Each lower layer adds local facts; it should not repeat the higher layers or generic engineering method.
 
 ## Fill the Repository Guide with Facts

@@ -2,6 +2,8 @@
 
 ## 0.4.0
 
+- Made source validation execute safe host-supported behavior tests and report unavailable PowerShell coverage explicitly.
+- Simplified bootstrap to read-only preflight, fixed project-scoped watcher paths and worktree validation, and reduced duplicated guidance.
 - Added the Portable Adoption Kit, reference environment, and re-entry guide for a portable, reproducible personal AI coding baseline.
 - Added cross-platform reproduction utilities and source-level reproduction tests while preserving user ownership of accounts, configuration, and explicit installation decisions.
 - Added project-scoped Graphify watcher adapters for Linux, macOS, and Windows, with watcher-only automatic refresh and documented native-platform acceptance boundaries.

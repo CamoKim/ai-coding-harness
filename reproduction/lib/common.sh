@@ -18,7 +18,6 @@ parse_component() {
                 component=$2
                 shift 2
                 ;;
-            --apply) apply=true; shift ;;
             *) emit UNSUPPORTED argument "$1"; return 2 ;;
         esac
     done

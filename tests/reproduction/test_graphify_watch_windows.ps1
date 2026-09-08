@@ -4,8 +4,12 @@ $Adapter = Join-Path $Root 'reproduction/graphify-watch/windows.ps1'
 if (-not (Test-Path -LiteralPath $Adapter)) { throw 'Windows Graphify watcher adapter is missing' }
 
 $TempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("harness-graphify-watch-windows-" + [guid]::NewGuid())
+$Source = Join-Path $TempRoot 'source'
 $Repo = Join-Path $TempRoot 'repo'
-New-Item -ItemType Directory -Force -Path (Join-Path $Repo '.git') | Out-Null
+New-Item -ItemType Directory -Force -Path $Source | Out-Null
+& git -C $Source init --quiet
+& git -C $Source -c user.name=Harness -c user.email=harness@example.invalid commit --allow-empty --quiet -m initial
+& git -C $Source worktree add --quiet $Repo
 $FakeBin = Join-Path $TempRoot 'bin'
 New-Item -ItemType Directory -Force -Path $FakeBin | Out-Null
 Set-Content -LiteralPath (Join-Path $FakeBin 'graphify.cmd') -Value '@exit /b 0' -NoNewline
@@ -29,6 +33,15 @@ try {
     } catch { }
     if ($invalidAccepted) { throw 'invalid identifier was accepted' }
     if ($script:ScheduledTasks.Count -ne 0) { throw 'invalid identifier invoked schtasks' }
+
+    $Bogus = Join-Path $TempRoot 'bogus'
+    New-Item -ItemType Directory -Force -Path (Join-Path $Bogus '.git') | Out-Null
+    $bogusAccepted = $false
+    try {
+        & $Adapter enable bogus $Bogus | Out-Null
+        $bogusAccepted = $true
+    } catch { }
+    if ($bogusAccepted) { throw 'repository validation accepted fake Git metadata' }
 
     & $Adapter enable demo $Repo
     if (($script:ScheduledTasks -join "`n") -notmatch '/Create /TN Graphify-Watch-demo ') {

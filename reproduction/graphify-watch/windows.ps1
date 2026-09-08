@@ -25,9 +25,11 @@ function Get-ConfigPath([string]$Value) {
 }
 
 function Assert-Repository([string]$Value) {
-    if ([string]::IsNullOrWhiteSpace($Value) -or -not (Test-Path -LiteralPath (Join-Path $Value '.git') -PathType Container)) {
+    if ([string]::IsNullOrWhiteSpace($Value) -or -not (Test-Path -LiteralPath $Value -PathType Container)) {
         throw 'repository is not a Git repository'
     }
+    $InsideWorkTree = & git -C $Value rev-parse --is-inside-work-tree 2>$null
+    if ($LASTEXITCODE -ne 0 -or $InsideWorkTree -ne 'true') { throw 'repository is not a Git repository' }
     (Resolve-Path -LiteralPath $Value).Path
 }
 

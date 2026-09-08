@@ -20,19 +20,22 @@ fake_bin=$temp_dir/bin
 mkdir -p "$fake_bin"
 printf '#!/usr/bin/env sh\nexit 0\n' > "$fake_bin/git"
 printf '#!/usr/bin/env sh\nexit 0\n' > "$fake_bin/codex"
-printf '#!/usr/bin/env sh\necho "echo INSTALLER_RAN"\n' > "$fake_bin/curl"
-chmod 700 "$fake_bin/git" "$fake_bin/codex" "$fake_bin/curl"
+chmod 700 "$fake_bin/git" "$fake_bin/codex"
 
-PATH=$fake_bin:$PATH "$doctor" --component core > "$temp_dir/doctor.out"
+HARNESS_VALIDATION_CHILD=1 PATH=$fake_bin:$PATH "$doctor" --component core > "$temp_dir/doctor.out"
 grep -F -q 'READY git' "$temp_dir/doctor.out" || fail 'doctor does not report Git ready'
 grep -F -q 'READY codex' "$temp_dir/doctor.out" || fail 'doctor does not report Codex ready'
 grep -F -q 'MANUAL codex-login' "$temp_dir/doctor.out" || fail 'doctor does not preserve manual login boundary'
 
-PATH=$fake_bin:$PATH "$bootstrap" --component core > "$temp_dir/bootstrap.out"
+HARNESS_VALIDATION_CHILD=1 PATH=$fake_bin:$PATH "$bootstrap" --component core > "$temp_dir/bootstrap.out"
 grep -F -q 'READY preflight' "$temp_dir/bootstrap.out" || fail 'bootstrap does not perform read-only preflight'
 
-PATH=$fake_bin:$PATH "$bootstrap" --component core --apply > "$temp_dir/apply.out"
-grep -F -q 'INSTALLER_RAN' "$temp_dir/apply.out" || fail 'apply does not invoke the official Codex installer'
-grep -F -q 'READY installation' "$temp_dir/apply.out" || fail 'apply does not report installation completion'
+if HARNESS_VALIDATION_CHILD=1 PATH=$fake_bin:$PATH "$bootstrap" --component core --apply > "$temp_dir/apply.out" 2>&1; then
+    fail 'bootstrap accepted the removed --apply option'
+fi
+grep -F -q 'UNSUPPORTED argument --apply' "$temp_dir/apply.out" || fail 'bootstrap does not identify the removed --apply option'
+if grep -F -q 'INSTALLER_RAN' "$temp_dir/apply.out"; then
+    fail 'bootstrap invoked an installer'
+fi
 
 printf '%s\n' 'PASS: bash core contract'

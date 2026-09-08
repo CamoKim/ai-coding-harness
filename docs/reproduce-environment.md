@@ -15,7 +15,7 @@ Linux or macOS: ./reproduction/bootstrap.sh --component core
 Windows:        .\reproduction\bootstrap.ps1 -Component core
 ```
 
-Preflight is read-only. `READY` means an automatable component is present, `MISSING` means it must be installed, `MANUAL` names a user-owned action, and `UNSUPPORTED` means the platform or request is outside this release. Exit `0` means selected automatable checks are ready, `1` means a required check is missing, and `2` means unsupported.
+Bootstrap is read-only and does not accept an apply option. `READY` means an automatable component is present, `MISSING` means it must be installed, `MANUAL` names a user-owned action, and `UNSUPPORTED` means the platform or request is outside this release. Exit `0` means selected automatable checks are ready, `1` means a required check is missing, and `2` means unsupported.
 
 ## Install and Authenticate Codex
 

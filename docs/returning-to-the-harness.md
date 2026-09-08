@@ -32,31 +32,9 @@ or runtime state.
 
 ## Mental Model to Restore
 
-The Harness is a small, versioned reference for durable instructions and
-verification contracts. It does not run Codex, manage configuration, or
-contain each project's operational commands.
-
-```text
-Harness: reusable rules, templates, and documentation
-    ↓ reviewed adoption
-Project: facts, commands, compatibility boundaries, verification routing
-    ↓ normal use
-Native Codex + optional project tools: work on the requested outcome
-```
-
-Use the nearest owner for every correction:
-
-| Observation | Correct owner |
-| --- | --- |
-| A personal safety or reporting rule is missing across projects | Global `AGENTS.md` and, if durable, the global template here |
-| A project's architecture fact, consumer, command, or compatibility boundary is wrong | that project's nearest `AGENTS.md` or source-of-truth documentation |
-| Verification is incomplete or incorrectly routed | that project's `./scripts/verify` and Verification Routing map |
-| A generic methodology step is unclear | Native Codex or Superpowers, not duplicate Harness instructions |
-| Graph structure is stale or absent | the opted-in repository's Graphify artifacts, guidance, and watcher |
-| Credentials, trust, plugin state, or local service configuration is absent | the user-owned local environment, never a portable Harness artifact |
-
-This separation is the safeguard against the Harness becoming a second build
-system, a copy of every repository, or a hidden configuration manager.
+Use [the architecture guide](architecture.md) to identify the owner of a
+correction and [the adoption guide](adoption.md) to place durable instructions
+at the narrowest applicable scope.
 
 ## Restore the Normal Daily Interface
 
