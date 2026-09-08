@@ -27,6 +27,10 @@ Start by validating this source repository:
 ./scripts/validate
 ```
 
+## Share It With Another Engineer
+
+For a complete manual adoption path, start with the [Portable Adoption Kit](docs/portable-adoption-kit.md). It preserves existing project instructions and deliberately leaves accounts, credentials, plugins, local trust, and optional project tools under their owners' control.
+
 ## Daily use
 
 Most work starts with a natural-language request, such as “Add pagination to the orders endpoint and verify affected consumers.” Superpowers methodology is normally applied by Codex when it is useful; it is not another Harness command to memorize. Use [the daily usage guide](docs/daily-usage.md) for `/goal`, subagents, worktrees, review, `codex exec`, hooks, project verification, and optional OMX.
@@ -36,6 +40,7 @@ Returning after a pause or on a new machine? Start with [the re-entry guide](doc
 ## Read deeper
 
 - [Adoption workflow](docs/adoption.md)
+- [Portable Adoption Kit](docs/portable-adoption-kit.md)
 - [Daily usage guide](docs/daily-usage.md)
 - [Returning to the Harness](docs/returning-to-the-harness.md)
 - [Reference environment and deliberate boundaries](docs/reference-environment.md)
