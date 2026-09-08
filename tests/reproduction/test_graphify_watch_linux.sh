@@ -23,6 +23,7 @@ fi
 
 HARNESS_SERVICE_LOG=$temp_dir/services XDG_CONFIG_HOME=$temp_dir/config PATH=$fake_bin:$PATH "$adapter" enable demo "$temp_dir/repo"
 grep -F -q 'enable --now graphify-watch@demo.service' "$temp_dir/services" || fail 'enable does not target exact service'
+grep -F -q "ExecStart=\"$fake_bin/graphify\" watch" "$temp_dir/config/systemd/user/graphify-watch@.service" || fail 'service does not use the resolved Graphify executable'
 HARNESS_SERVICE_LOG=$temp_dir/services XDG_CONFIG_HOME=$temp_dir/config PATH=$fake_bin:$PATH "$adapter" remove demo
 grep -F -q 'disable --now graphify-watch@demo.service' "$temp_dir/services" || fail 'remove does not target exact service'
 

@@ -66,6 +66,17 @@ Windows: .\reproduction\graphify-watch\windows.ps1 enable <project-id> <reposito
 
 `project-id` must contain only letters, numbers, `_`, and `-`. It identifies exactly one platform object: `graphify-watch@<project-id>.service` (Linux), `com.graphify.watch.<project-id>.plist` (macOS), or `Graphify-Watch-<project-id>` (Windows). `remove` affects only that named object and its matching project configuration; it never discovers, changes, or removes other watcher registrations. The first real `enable` is a human acceptance checkpoint because it registers a persistent service or scheduled task for a chosen repository.
 
+The adapters resolve and store the installed Graphify executable path when they enable a watcher, so the service does not depend on an interactive shell `PATH` after a reboot. A watcher is the recommended one-per-repository default when graph output should follow ordinary file saves: it rebuilds code changes after a short debounce. Document, image, and other semantic inputs still set `graphify-out/needs_update`; they require an explicit semantic update because that work can use an LLM.
+
+Graphify also offers an alternative Git-hook workflow:
+
+```text
+cd <repository-path>
+graphify hook install
+```
+
+It rebuilds after commits and branch checkouts rather than after every save. It modifies that repository's Git hooks and merge-driver configuration, so it is also a human acceptance checkpoint. Prefer either the persistent watcher or the hook for routine automatic rebuilds in a repository; enabling both can schedule duplicate rebuilds around a commit.
+
 ## Fresh-Machine Acceptance
 
 For each operating system, a human must verify a fresh environment: run preflight, install Codex through its official route, complete login, install Superpowers, run doctor, and adopt the Harness in a disposable Git repository. On Windows, run `tests/reproduction/test_powershell_core.ps1` in PowerShell 7. Record only command outcomes; never record account identifiers or authorization data.

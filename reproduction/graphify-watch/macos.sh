@@ -12,6 +12,12 @@ plist_path() { printf '%s/%s.plist' "$agent_root" "$(label "$1")"; }
 xml_escape() {
     printf '%s' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/"/\&quot;/g' -e "s/'/\&apos;/g"
 }
+resolve_graphify() {
+    raw=$(command -v graphify 2>/dev/null || :)
+    [ -n "$raw" ] && [ -f "$raw" ] && [ -x "$raw" ] || return 1
+    directory=$(CDPATH= cd -- "$(dirname -- "$raw")" && pwd -P)
+    printf '%s/%s' "$directory" "$(basename -- "$raw")"
+}
 
 require_id() {
     valid_id "$1" || fail 'project identifier must contain only letters, numbers, underscores, or hyphens'
@@ -24,7 +30,7 @@ enable() {
     repo=$2
     require_id "$id"
     [ -d "$repo/.git" ] || fail 'repository is not a Git repository'
-    command -v graphify >/dev/null 2>&1 || fail 'graphify is not available'
+    graphify=$(resolve_graphify) || fail 'graphify is not available as an executable'
     repo=$(CDPATH= cd -- "$repo" && pwd -P)
     plist=$(plist_path "$id")
     mkdir -p "$config_root/projects" "$agent_root"
@@ -38,7 +44,7 @@ enable() {
   <string>$(label "$id")</string>
   <key>ProgramArguments</key>
   <array>
-    <string>graphify</string>
+    <string>$(xml_escape "$graphify")</string>
     <string>watch</string>
     <string>$(xml_escape "$repo")</string>
   </array>

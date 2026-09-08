@@ -26,6 +26,7 @@ fi
 HARNESS_SERVICE_LOG=$temp_dir/services HOME=$temp_dir/home PATH=$fake_bin:$PATH "$adapter" enable demo "$repo"
 grep -F -q 'bootstrap gui/501' "$temp_dir/services" || fail 'enable does not bootstrap the current user domain'
 grep -F -q 'com.graphify.watch.demo.plist' "$temp_dir/services" || fail 'enable does not target exact plist'
+grep -F -q "<string>$fake_bin/graphify</string>" "$temp_dir/home/Library/LaunchAgents/com.graphify.watch.demo.plist" || fail 'plist does not use the resolved Graphify executable'
 grep -F -q '<string>'"$temp_dir"'/repo &amp; graph</string>' "$temp_dir/home/Library/LaunchAgents/com.graphify.watch.demo.plist" || fail 'plist does not escape repository path XML'
 HARNESS_SERVICE_LOG=$temp_dir/services HOME=$temp_dir/home PATH=$fake_bin:$PATH "$adapter" remove demo
 grep -F -q 'bootout gui/501' "$temp_dir/services" || fail 'remove does not boot out the current user domain'
