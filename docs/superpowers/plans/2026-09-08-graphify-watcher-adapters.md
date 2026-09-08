@@ -56,7 +56,7 @@
 - [x] Document that Graphify watcher activation is a project-specific, stateful operation requiring an explicit user command and repository path.
 - [x] Add every adapter to source validation and test that a missing adapter is rejected.
 - [x] Run Linux and macOS fake-command tests, Harness validation, and diff checks. Windows native execution remains unavailable here.
-- [ ] Commit the final validation-contract update.
+- [x] Commit the final validation-contract update.
 
 ## Plan Self-Review
 
