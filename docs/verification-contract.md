@@ -32,6 +32,8 @@ Route every affected scope, not just the directory containing the changed file. 
 
 The project may map a scope and level directly to existing commands, use a small wrapper, or omit this interface when its current project-owned commands are clearer. It does not need a root dispatcher, per-subsystem scripts, an `all` scope, changed-file inference, or a shared verification framework.
 
+A project may invoke its own verifier from CI, but workflow definitions, credentials, required checks, and runtime setup remain project-owned.
+
 Whatever form a project chooses, keep the actual recipes near the code they validate. Make the checks actually run, checks not run, and unsupported environments observable without exposing secrets. The verifier or documented commands must not modify application, infrastructure, or production state by default.
 
 ## Exit Codes

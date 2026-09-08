@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Personal AI Coding Harness v0.3 provides a small, reusable foundation for working with Codex across repositories. It standardizes durable safety instructions and the interface used to invoke project-owned verification without centralizing project knowledge.
+Personal AI Coding Harness v0.4 provides a small, reusable foundation for working with Codex across repositories. It standardizes durable safety instructions and the interface used to invoke project-owned verification without centralizing project knowledge.
 
 The goal is a feedback-driven harness: begin with a minimal contract, use it in real projects, and promote only repeated, proven practices into shared artifacts.
 
@@ -85,9 +85,10 @@ Use OMX only when work needs durable coordination across people, agents, or a lo
 
 ## Planned Extensions
 
-The following remain planned, not implemented in v0.3:
+Project CI may invoke stable project-owned verification commands, but its
+workflows, credentials, required checks, and runtime setup remain outside the
+Harness. The following remains planned, not implemented in v0.4:
 
-- CI that invokes stable project-owned verification commands;
 - MCP integrations when external data or actions become necessary.
 
 Native Codex and optional methodology providers such as Superpowers supply generic engineering workflows. The Harness keeps only project-local contracts that require reusable expression.
