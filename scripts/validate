@@ -73,6 +73,7 @@ reproduction/bootstrap.ps1
 reproduction/doctor.ps1
 reproduction/lib/common.sh
 reproduction/lib/common.ps1
+reproduction/graphify-watch/linux.sh
 templates/global/AGENTS.md
 templates/repository/AGENTS.md
 templates/subsystem/AGENTS.md
@@ -88,6 +89,7 @@ done
 
 shell_scripts='
 scripts/validate
+reproduction/graphify-watch/linux.sh
 '
 
 for path in $shell_scripts; do
