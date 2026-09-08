@@ -4,8 +4,8 @@
 
 This document records the intended operating environment for this Harness: why
 it exists, which responsibilities each layer owns, and what is deliberately
-left outside it. It is a reusable reference, not an installer or a claim that
-every machine is configured identically.
+left outside it. It is a reusable reference, not a runtime installer or a
+claim that every machine is configured identically.
 
 The environment is designed to improve outcomes over time by preserving
 durable project facts, choosing evidence proportionate to risk, and promoting
@@ -85,9 +85,13 @@ observed benefit beyond the baseline.
 - **Ponytail** is deferred. Its small-diff guidance overlaps substantially
   with the existing instruction and methodology layers, so it needs a concrete
   gap before adoption.
-- **Installers, doctor commands, and custom orchestration runtimes** are
-  excluded. They would manage user-owned configuration or duplicate native
-  Codex, Superpowers, Git, and project tooling.
+- **Runtime installers, self-healing doctor tooling, and custom orchestration
+  runtimes** are excluded. They would manage user-owned configuration or
+  duplicate native Codex, Superpowers, Git, and project tooling. Portable
+  reproduction utilities are included only as explicit, user-invoked
+  environment-reconstruction aids: their read-only checks report prerequisites,
+  and any `--apply` installation step remains a deliberate user action that
+  invokes an official installation route.
 
 An excluded tool may be reconsidered later, but only with a specific problem,
 a bounded trial, and evidence that it improves outcomes without weakening

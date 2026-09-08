@@ -80,6 +80,7 @@ tests/reproduction/test_graphify_watch_linux.sh
 tests/reproduction/test_graphify_watch_macos.sh
 tests/reproduction/test_graphify_watch_windows.ps1
 tests/reproduction/test_validate_graphify_watch.sh
+tests/reproduction/test_documentation_contracts.sh
 templates/global/AGENTS.md
 templates/repository/AGENTS.md
 templates/subsystem/AGENTS.md
@@ -112,6 +113,7 @@ shell_test_scripts='
 tests/reproduction/test_graphify_watch_linux.sh
 tests/reproduction/test_graphify_watch_macos.sh
 tests/reproduction/test_validate_graphify_watch.sh
+tests/reproduction/test_documentation_contracts.sh
 '
 
 for path in $shell_test_scripts; do
@@ -172,6 +174,12 @@ require_text docs/daily-usage.md 'codex exec'
 require_text docs/daily-usage.md 'native hooks'
 require_text docs/daily-usage.md './scripts/verify <scope> fast'
 require_text docs/daily-usage.md 'Use OMX only when'
+
+if sh tests/reproduction/test_documentation_contracts.sh; then
+    pass 'documentation boundary contract'
+else
+    fail 'documentation boundary contract failed'
+fi
 
 text_paths='
 VERSION

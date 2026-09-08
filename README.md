@@ -11,7 +11,7 @@ The Harness owns only durable, project-specific guidance:
 - the project-owned `./scripts/verify <scope> <level>` contract and verification-routing rules; and
 - source validation for this repository.
 
-It deliberately does not own Codex execution, approvals, sessions, `/goal`, subagents, review, `codex exec`, hooks, project build commands, installers, doctor tooling, or orchestration runtimes. Native Codex owns its native capabilities; Superpowers supplies generic engineering methodology; optional OMX remains outside the normal Harness path.
+It deliberately does not own Codex execution, approvals, sessions, `/goal`, subagents, review, `codex exec`, hooks, project build commands, runtime management, self-healing doctor tooling, or automatic installers. Its explicit, user-invoked reproduction utilities inspect portable prerequisites and help reconstruct the documented environment; they do not manage user-owned configuration. Native Codex owns its native capabilities; Superpowers supplies generic engineering methodology; optional OMX remains outside the normal Harness path.
 
 ## Adopt it in a repository
 
@@ -51,4 +51,4 @@ Returning after a pause or on a new machine? Start with [the re-entry guide](doc
 - [Configuration ownership](docs/configuration.md)
 - [Changelog](CHANGELOG.md)
 
-The Harness stays intentionally small. Do not add behavioral labs, benchmark frameworks, installer/uninstaller or doctor infrastructure, duplicated verification implementations, or custom orchestration already provided by Codex, Superpowers, Git, or OMX.
+The Harness stays intentionally small. Do not add behavioral labs, benchmark frameworks, runtime installer/uninstaller or self-healing doctor infrastructure, duplicated verification implementations, or custom orchestration already provided by Codex, Superpowers, Git, or OMX. Portable, explicit reproduction checks remain a narrow exception.

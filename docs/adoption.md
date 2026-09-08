@@ -2,7 +2,7 @@
 
 ## Safe Manual Adoption
 
-This Harness intentionally has no installer, uninstaller, or doctor. Adopt it by reviewing and merging its small templates into the places you already own.
+This Harness does not provide a runtime manager, self-healing doctor, or automatic installer. Its separate, explicit reproduction utilities inspect portable prerequisites; they do not replace manual, reviewed adoption. Adopt the Harness by reviewing and merging its small templates into the places you already own.
 
 1. Read the target repository’s existing `AGENTS.md` files and nearby project documentation first. Treat them as the current source of truth.
 2. Review `templates/global/AGENTS.md`, then merge its durable personal engineering rules into `~/.codex/AGENTS.md` (or your configured Codex-home equivalent). Read the existing file first; append or reconcile only non-duplicated rules, and keep unrelated personal instructions unchanged. Review the resulting diff before saving.

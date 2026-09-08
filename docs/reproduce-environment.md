@@ -4,6 +4,8 @@
 
 This guide recreates the portable Harness baseline on Linux, macOS, or Windows. It does not transfer a Codex account, credentials, plugin authorization, connector authorization, trust decisions, project paths, `AGENTS.md`, or `config.toml`.
 
+The reproduction utilities inspect portable prerequisites and help reconstruct the documented environment. They are explicit, user-invoked aids, not runtime management, self-healing doctor tooling, or unattended installation.
+
 ## Core Preflight
 
 Clone this repository, then run the platform entry point without an apply flag:
@@ -68,14 +70,7 @@ Windows: .\reproduction\graphify-watch\windows.ps1 enable <project-id> <reposito
 
 The adapters resolve and store the installed Graphify executable path when they enable a watcher, so the service does not depend on an interactive shell `PATH` after a reboot. A watcher is the recommended one-per-repository default when graph output should follow ordinary file saves: it rebuilds code changes after a short debounce. Document, image, and other semantic inputs still set `graphify-out/needs_update`; they require an explicit semantic update because that work can use an LLM.
 
-Graphify also offers an alternative Git-hook workflow:
-
-```text
-cd <repository-path>
-graphify hook install
-```
-
-It rebuilds after commits and branch checkouts rather than after every save. It modifies that repository's Git hooks and merge-driver configuration, so it is also a human acceptance checkpoint. Prefer either the persistent watcher or the hook for routine automatic rebuilds in a repository; enabling both can schedule duplicate rebuilds around a commit.
+The project-scoped watcher is the only supported automatic Graphify refresh path. Do not install Graphify Git hooks: Codex commonly makes several uncommitted edits before a commit, and the watcher keeps the graph current throughout that workflow.
 
 ## Fresh-Machine Acceptance
 
