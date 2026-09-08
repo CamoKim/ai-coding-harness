@@ -15,7 +15,11 @@ esac
 
 "$SCRIPT_DIR/doctor.sh" --component "$component" || exit $?
 if [ "$apply" = true ]; then
-    emit MANUAL installation 'core installation adapters are not yet configured'
+    emit READY installation 'running official Codex installer'
+    if ! curl -fsSL https://chatgpt.com/codex/install.sh | sh; then
+        emit MISSING installation 'official Codex installer failed'
+        exit 1
+    fi
 else
     emit READY preflight 'no changes made; pass --apply only after reviewing an adapter'
 fi
