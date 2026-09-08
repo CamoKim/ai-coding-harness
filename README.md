@@ -35,6 +35,7 @@ Most work starts with a natural-language request, such as “Add pagination to t
 
 - [Adoption workflow](docs/adoption.md)
 - [Daily usage guide](docs/daily-usage.md)
+- [Reference environment and deliberate boundaries](docs/reference-environment.md)
 - [Architecture and ownership boundary](docs/architecture.md)
 - [Verification contract](docs/verification-contract.md)
 - [Configuration ownership](docs/configuration.md)
